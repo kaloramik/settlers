@@ -1,7 +1,8 @@
 //map class
 //
 
-function Map(){
+function Map(mapCenter, resourceList){
+    //coordCenter   the coordinates for the center of the map
     //19 tiles for the original game
     //4 wood //4 wheat //4 sheep //3 brick //3 ore //1 desert
     //   
@@ -11,22 +12,92 @@ function Map(){
     //  12  13  14  15
     //    16  17  18
     //    
-    var numTiles = 19
+    //    map needs to know the center of the map (hex 9)
+    this.mapCenter = mapCenter;
 
-    //generate random tile type
-    var resourceList = [0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,4,4,4,5]
-    resourceList = fisherYates(resourceList)
 
-    this.hexList = []
-    
-    var i=0;
-    for (var resource in resourceList){
-        //generate tile
-        this.hexList.push(new Hex(resource, i))
-        i++;
-    }
+    var numTiles = 19;
+    //the radius for a single hex
+    var hexRadius = 40;
+    // distance inbetween hex tiles
+    var interHexDist = 10;
+
+    var boardElem = document.getElementById("board");
+	var canvas = document.createElement('canvas');
+    boardElem.appendChild(canvas);
+    canvas.width = 700;
+    canvas.height = 400;
+    var ctx = canvas.getContext("2d");
+
+    //if resourceList is not passed, then initialize normally
+    if (typeof resourceList == 'undefined')
+        this.hexList = intializeHex(hexRadius, interHexDist, ctx, mapCenter);
+    else
+        this.hexList = createHex(hexRadius, interHexDist, ctx, mapCenter, resourceList);
 }
 
+function intializeHex(hexRadius, interHexDist, ctx, mapCenter){
+    //intializes the map for the server - including randomizing the resources
+    var hexList = [];
+    var hexPosn;
+    var resourceList = [0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,4,4,4,5];
+    //generate random tile type
+    fisherYates(resourceList);
+
+    for (var i=0; i<resourceList.length; i++){
+        //generate tile
+        hexPosn = posnToCoord(i, hexRadius, interHexDist, mapCenter)
+        hexList.push(new Hex(resourceList[i], i, hexPosn, ctx, hexRadius, interHexDist));
+    }
+
+    return hexList;
+}
+
+function createHex(hexRadius, interHexDist, ctx, mapCenter, resourceList){
+    //recreates the Hexes given the 
+    var hexList = [];
+    var hexPosn;
+    //generate random tile type
+    fisherYates(resourceList);
+
+    for (var i=0; i<resourceList.length; i++){
+        //generate tile
+        hexPosn = posnToCoord(i, hexRadius, interHexDist, mapCenter)
+        hexList.push(new Hex(resourceList[i], i, hexPosn, ctx, hexRadius, interHexDist));
+    }
+
+    return hexList;
+}
+
+function posnToCoord(position, hexRadius, interHexDist, originCoord){
+    //TRIANGLE LATTICE is the dual of the HEXAGON LATTICE! use triangle lattice to determine the locations of the hex grid
+    //takes a hex's position and converts it to the hex's center coordinate
+    //First, map each position index[0:18] into a tuple (x', y') where x' is the number of triangle RADII to traverse away from the center in the x direction, and y' is the number of traingle HEIGHT to traverse away from the center in the y direction
+
+    var xPrime, yPrime;
+    if (position <= 2)  yPrime = -2;
+    else if (position <=6) yPrime = -1;
+    else if (position <=11) yPrime = 0;
+    else if (position <=15) yPrime = 1;
+    else yPrime = 2;
+
+    if (position == 7) xPrime = -4;
+    else if (position == 3 || position == 12) xPrime = -3;
+    else if (position == 0 || position == 8 || position == 16) xPrime = -2;
+    else if (position == 4 || position == 13) xPrime = -1;
+    else if (position == 1 || position == 9 || position == 17) xPrime = 0;
+    else if (position == 5 || position == 14) xPrime = 1;
+    else if (position == 2 || position == 10 || position == 18) xPrime = 2;
+    else if (position == 6 || position == 15) xPrime = 3;
+    else xPrime = 4;
+
+    var xUnit = hexRadius * Math.sqrt(3) / 2.0 + interHexDist / 2.0;
+    var yUnit = hexRadius * 1.5 + interHexDist * Math.sqrt(3) / 2.0;
+    var xPosn = xPrime * xUnit + originCoord[0];
+    var yPosn = yPrime * yUnit + originCoord[1];
+
+    return [xPosn, yPosn];
+}
 
 function fisherYates(myArray){
     //randomizes the elements of the array
@@ -43,22 +114,13 @@ function fisherYates(myArray){
 }
 
 function init(){
-    var canvas = document.createElement('canvas')
-    document.getElementById("board").appendChild(canvas)
-    var ctx = canvas.getContext("2d");
-    ctx.beginPath();
-    ctx.fillStyle = '#f00';
-    ctx.moveTo(0, 0);
-    ctx.lineTo(100, 50);
-    ctx.lineTo(50, 100);
-    ctx.lineTo(0, 90);
-    ctx.closePath();
-    ctx.fill();
+    var map = new Map([300,200])
 }
 
-window.onload = function () {
+window.onload = function(){
     init();
 }
+
 /*
 function init()
 {
