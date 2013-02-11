@@ -43,16 +43,17 @@ function fisherYates(myArray){
 }
 
 function init(){
-    var c2 = document.createElement('canvas').getContext("2d");
-    c2.fillStyle = '#f00';
-    c2.beginPath();
-    c2.moveTo(0, 0);
-    c2.lineTo(100, 50);
-    c2.lineTo(50, 100);
-    c2.lineTo(0, 90);
-    c2.closePath();
-    c2.fill();
-
+    var canvas = document.createElement('canvas')
+    document.getElementById("board").appendChild(canvas)
+    var ctx = canvas.getContext("2d");
+    ctx.beginPath();
+    ctx.fillStyle = '#f00';
+    ctx.moveTo(0, 0);
+    ctx.lineTo(100, 50);
+    ctx.lineTo(50, 100);
+    ctx.lineTo(0, 90);
+    ctx.closePath();
+    ctx.fill();
 }
 
 window.onload = function () {
