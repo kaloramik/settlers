@@ -1,0 +1,113 @@
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script>
+
+$(document).ready(function(){
+var socket = io.connect('http://localhost:8080');
+var name = '';
+
+
+var parse_data = function(data) {
+    var s = 'resources:';
+    for (var index in data) {
+    s += index + ': ' + data[index] + ' ';
+    }
+    return s;
+}
+
+var parse_resources = function(data) {
+    var s = '';
+    for (var index in data) {
+    s += index + ': ' + data[index] + ' ';
+    }
+    return s;
+
+}
+
+
+// on connection to server, ask for user's name with an anonymous callback
+socket.on('connect', function(){
+        // call the server-side function 'adduser' and send one parameter (value of prompt)
+        name = prompt("Whats your name before");
+        socket.emit('adduser', name);
+        });
+
+// listener, whenever the server emits 'updatechat', this updates the chat body
+socket.on('updatechat', function (username, data) {
+        $('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+        });
+
+socket.on('updatechat_with_stats', function (user) {
+        $('#conversation').append('<b>'+user.username + ':</b> ' + parse_data(user) + '<br>');
+        });
+
+socket.on('post_trade_to_window', function (username, give_items, want_items) {
+        $('#trade_window').append('<b>'+ username + ':</b> ' + parse_resources(give_items) + " for " + parse_resources(want_items) + '<br>');
+        tradeWindow = document.getElementById('trade_window');
+        newButton = document.createElement('input');
+        newButton.type = 'button';
+        newButton.value = 'Accept';
+        tradeWindow.appendChild(newButton);
+});
+
+// listener, whenever the server emits 'updateusers', this updates the username list
+socket.on('updateusers', function(data) {
+        $('#users').empty();
+        $.each(data, function(key, value) {
+            $('#users').append('<div>' + key + '</div>');
+            });
+        });
+
+
+        // when the client clicks SEND
+        $('#datasend').click( function() {
+            var message = $('#data').val();
+            $('#data').val('');
+            // tell server to execute 'sendchat' and send along one parameter
+            socket.emit('sendchat', message);
+            });
+
+        // when the client hits ENTER on their keyboard
+        $('#data').keypress(function(e) {
+            if(e.which == 13) {
+            $('#datasend').click();
+            }
+            });
+        $('#current_stuff').click(function() {
+            socket.emit('get_stats', name);
+        });
+
+        $('#propose_trade').click(function() {
+            var to_wood = $('#to_wood').val();
+            var for_brick = $('#for_brick').val();
+            var give_items = {
+                'wood': to_wood,
+            };
+            var want_items = {
+                'brick': for_brick,
+            };
+            socket.emit('post_trade', name, give_items, want_items);
+        });
+
+});
+
+
+</script>
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+<b>USERS</b>
+<div id="users"></div>
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
+<div id="conversation"></div>
+<input id="data" style="width:200px;" />
+<input type="button" id="datasend" value="send" />
+<input type="button" id="current_stuff" value="current_stuff" /> 
+<form>
+
+Give_wood <input id="to_wood" type="text" name="give_wood"><br>
+For_Brick <input id="for_brick" type="text" name="for_brick">
+</form>
+<input type="button" id="propose_trade" value="propose_trade" /> 
+</div>
+<div> Trade Window</div>
+<div id="trade_window"></div>
