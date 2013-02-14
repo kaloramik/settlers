@@ -1,5 +1,4 @@
-
-function Hex(hexID, resource){
+function Hex(hexID, resource, rollNum){
     //
     //        _0__1__2__3__4__ x            _0__1__2__3__4__ x
     //      0 /__/__/__/__/__/           0 /00/10/20/__/__/
@@ -27,6 +26,7 @@ function Hex(hexID, resource){
     //
     this.ID = hexID;
     this.resourceType = resource;
+    this.rollNum = rollNum;
 
     this.initalizeHex = function(){
         this.color = resourceColor(this.resourceType);
@@ -37,6 +37,7 @@ function Hex(hexID, resource){
         var hexID = this.ID;
         this.center = triangularToCartesian(hexID, 1);
         this.hexPoints = getVerticiesOfHex(1);
+        this.pentPoints = getVerticiesOfPent(1);
     }
 
     this.buildSettlement = function(playerNum){
@@ -48,30 +49,82 @@ function Hex(hexID, resource){
     this.initalizeHex()
 }
 
-drawHex = function(hex, ctx, hexRadius, interHexDist, originCoord){
-    //ctx:          Canvas context object
+drawHex = function(hex, paper, hexRadius, interHexDist, originCoord){
     //hex:          hex object
+    //paper:          Raphael Paper object
     //hexRadius:    radius for each Hex tile 
     //interhexDist: distance bewteen two Hex tiles
     //originCoord:  the center coordinate of the [0,0] Hex tile
 
-    var hexCenter = hex.center;
+    var hexCenter = [hex.center[0] * hexRadius + originCoord[0], hex.center[1] * hexRadius + originCoord[1]];
     var hexPoints = hex.hexPoints;
+
+    //Draw the Hexagon
     var drawHexRadius =  hexRadius - interHexDist / 2.0;
-    var drawPoints = []
+    var drawPoints = [];
     for (var i=0; i<6; i++){
-        var tempX = hexPoints[i][0] * drawHexRadius + hexCenter[0] * hexRadius + originCoord[0];
-        var tempY = hexPoints[i][1] * drawHexRadius + hexCenter[1] * hexRadius + originCoord[1];
+        var tempX = Math.round(hexPoints[i][0] * drawHexRadius + hexCenter[0]);
+        var tempY = Math.round(hexPoints[i][1] * drawHexRadius + hexCenter[1]);
         drawPoints.push([tempX, tempY]);
     }
 
+    var moveString = 'M';
+    for (var i=0; i<6; i++){
+        if (i != 0)
+            moveString += 'L';
+        moveString += drawPoints[i][0] + ' ' + drawPoints[i][1];
+    }
+    moveString += 'Z';
+    hex.shape = paper.path(moveString);
+    hex.shape.attr({stroke: "none", fill: hex.color, opacity: 10});
+    hex.shape.hover(
+        //Function for drawing the hex-dots on hover:
+        function() {
+            hex.freqDots.animate({"stroke-opacity":1, "fill-opacity":0.7}, 200);
+        },
+        function(){
+            hex.freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 200);
+        });
+
+
+    //Draw the roll number
+    if (hex.rollNum != 0)
+        hex.number = paper.text(hexCenter[0], hexCenter[1], String(hex.rollNum)).attr({opacity: 10, fill:'#fff', font: '5x Helvetica, Arial'}).toFront();
+
+    //Hex-Dots indicating the frequency of rolls:
+    hex.freqDots = paper.set();
+    if (hex.rollNum != 0){
+        var hexDotPosnRadius = drawHexRadius * 0.3
+        var hexDotRadius = drawHexRadius * 0.06
+        pentPoints = hex.pentPoints;
+        for (var i=0; i<5; i++){
+            var tempX = Math.round(pentPoints[i][0] * hexDotPosnRadius + hexCenter[0]);
+            var tempY = Math.round(pentPoints[i][1] * hexDotPosnRadius + hexCenter[1]);
+            drawPoints.push([tempX, tempY]);
+            var tempDot = paper.circle(tempX, tempY, hexDotRadius)
+
+            if (i < 6 - Math.abs(hex.rollNum - 7))
+                tempDot.attr("fill", 'black');
+            else
+                tempDot.attr("fill", 'none');
+            hex.freqDots.push(tempDot);
+        }
+
+        hex.freqDots.attr({"stroke-opacity":0, "fill-opacity": 0});
+    }
+
+
+
+
+
+/*
     ctx.beginPath();
     ctx.fillStyle = hex.color;
     ctx.moveTo(drawPoints[5][0], drawPoints[5][1]);
     for (var i=0; i<6; i++)
         ctx.lineTo(drawPoints[i][0], drawPoints[i][1]);
     ctx.closePath();
-    ctx.fill();
+    ctx.fill();*/
 }
 
 function getVerticiesOfHex(radius){
@@ -101,14 +154,25 @@ function getVerticiesOfHex(radius){
     return pointList;
 }
 
+function getVerticiesOfPent(radius){
+    //Same as getVerticiesofHex, but for a regular pentagon
+    var pointList = [];
+    var radian72 = 2 * Math.PI / 5.0;
+    //Start at 60Degrees
+    for (var i=0; i<5; i++){
+        pointList.push([radius * Math.sin(i * radian72), -radius  * Math.cos(i * radian72)]);
+    }
+    return pointList;
+}
+
 function resourceColor(resourceIndex){
     //converts the resource index to the corresponding color
-    if (resourceIndex == 0) return '#277D09' //wood
-    else if (resourceIndex == 1) return '#E37E00' //wheat
-    else if (resourceIndex == 2) return '#CCFF99' //sheep
-    else if (resourceIndex == 3) return '#7B090B' //brick
-    else if (resourceIndex == 4) return '#6F6161' //ore
-    else if (resourceIndex == 5) return '#DEC2C2' //desert
+    if (resourceIndex == 0) return '#DEC2C2' //desert
+    else if (resourceIndex == 1) return '#277D09' //wood
+    else if (resourceIndex == 2) return '#E37E00' //wheat
+    else if (resourceIndex == 3) return '#CCFF99' //sheep
+    else if (resourceIndex == 4) return '#7B090B' //brick
+    else if (resourceIndex == 5) return '#6F6161' //ore
 }
 
 function triangularToCartesian(v_t, hexRadius){
