@@ -1,4 +1,4 @@
 *.swp
+*.swo
 *~
-~.swo
 s_server/node_modules/
