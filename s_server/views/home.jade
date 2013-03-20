@@ -1,11 +1,15 @@
-h1 Settlersmack
-h2= title
-div
-  form(name='create_game', action='game', method='get')
-    | Create Game: 
-    input(type='text', name='create_game_input')) 
-    input(type='submit', value='Create Game')
-  form(name='join_game', action='', method='post')
-    | Join Game:
-    input(type='text', name='join_game_input')) 
-    input(type='submit', value='Join Game')
+extends layout
+block content
+  script(type='text/javascript', src='/js/home.js');
+  h1 Settlersmack
+  h2 #{title}
+  div
+    div(id='status')
+    form(id='enter_game_form', action='game', method='post')
+      | Player Name: 
+      input(type='text', id='user_id', name='userID')) 
+      br
+      | Create/Join Game: 
+      input(type='text', id='game_id', name='gameID')) 
+      input(type='button', id='create_game', onclick='createGame()', value='Create Game')
+      input(type='button', id='join_game', onclick='joinGame()', value='Join Game')

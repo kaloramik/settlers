@@ -6,11 +6,15 @@
     "start": "nodemon app.js"
   },
   "dependencies": {
+		"connect": "2.7.3",
+		"cookie": "0.0.5",
     "express": "3.1.0",
+		"socket.io": "0.9.13",
     "jade": "*",
     "less-middleware": "*"
   },
   "devDependencies": {
-    "nodemon": "*"
+    "nodemon": "*",
+		"winston": "*"
   }
 }

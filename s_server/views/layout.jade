@@ -1,7 +1,9 @@
-doctype 5
+!!!
+script(type='text/javascript', src='/socket.io/socket.io.js');
+script(type='text/javascript', src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js");
 html
   head
-    title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
-  body
-    block content
+    body
+      h1 My First Express App
+      h1 session ID is  #{sessionID}
+      block content 
