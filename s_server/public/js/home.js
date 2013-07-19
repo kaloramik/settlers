@@ -6,30 +6,37 @@ $(document).ready(function() {
       $('#status').text(data.message);
       return;
     }
-    $('#enter_game_form').submit();
+
+    if (data.join) {
+      // append gameID to the form submission
+      var gameIDInput = $("<input>", { type: "hidden", name: "gameID", value: data.gameID });
+      $('#enter_game_form').append($(gameIDInput));
+      $('#enter_game_form').submit();
+    }
   });
 });
 
 function createGame() {
-  var userID = $('#user_id').val();
-  if (!userID) {
+  var userName = $('#user_id').val();
+  if (!userName) {
     $('#status').text('user name is null');
     return;
   }
-  var gameID = $('#game_id').val(); 
-  if (!gameID) {
+  var gameName = $('#gameName').val();
+  if (!gameName) {
     $('#status').text('game id is null');
     return;
   }
-  socket.emit('enterGame',userID, gameID, true);
+  socket.emit('createGame', userName, gameName, true);
 }
+
 function joinGame() {
   var userID = $('#user_id').val();
   if (!userID) {
     $('#status').text('user name is null');
     return;
   }
-  var gameID = $('#game_id').val(); 
+  var gameID = $('#game_id').val();
   if (!gameID) {
     $('#status').text('game id is null');
     return;

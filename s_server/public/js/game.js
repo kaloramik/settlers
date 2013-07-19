@@ -3,9 +3,11 @@ var gameID = location.pathname.match(/\/game\/(.*)/)[1];
 $(document).ready(function() {
   socket = io.connect('http://localhost:3000');
   socket.on('connect', function() {
-    socket.emit('joinRoom', gameID);
+    socket.emit('joiningRoom', gameID);
+    /*
     socket.emit('getExistingChats', gameID);
     socket.emit('getExistingUsers', gameID);
+    */
   });
 
 socket.on('updatechat', function (data) {
