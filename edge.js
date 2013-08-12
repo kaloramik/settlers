@@ -45,6 +45,7 @@ function Edge(edgeID){
     this.ID = edgeID;
     this.adjEdges = [];
     this.owner = -1;
+    this.isPort = false;
     this.allowRoad = [false, false, false, false, false, false];
 
     this.initalizeEdge = function(){

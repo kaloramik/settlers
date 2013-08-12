@@ -48,6 +48,7 @@ function Vertex(vertexID){
     this.adjVerticies = [];
     this.buildingType = 0;  //-1: invalid, 0: valid, x1: settlement, x2: city
     this.owner = -1;
+    this.isPort = false;
     this.active = true;
     this.allowSettle = [true, true, true, true, true, true];
 //    this.startPoint = edgePoints[0];

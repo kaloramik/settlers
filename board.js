@@ -1,7 +1,7 @@
 //Board class
 //
 
-function Board(boardID, resourceList, rollList){
+function Board(boardID, resourceList, rollList, portList){
     //
     //        _0__1__2__3__4__ x            _0__1__2__3__4__ x
     //      0 /__/__/__/__/__/           0 /00/10/20/__/__/
@@ -22,6 +22,7 @@ function Board(boardID, resourceList, rollList){
     this.boardID = boardID;
     this.resourceList = resourceList;
     this.rollList = rollList;
+    this.portList = portList;
     
 
     //the radius for a single hex
@@ -167,14 +168,15 @@ function Board(boardID, resourceList, rollList){
             }
 
         }
-
-
-        // //For every Edge, find AdjEdges:
-        // for each (var edge in this.edgeList){
-        //     for each (var vertex in edge.adjVertex){
-                
-        //     }
-
+        //Ports:
+        for (var i=0; i<this.portList.length; i++){
+            var edgeID = this.portList[i];
+            var edgeKey = 'h' + edgeID[0] + '_' + edgeID[1] + 'e' + edgeID[2];
+            var portEdge = edgeDict[edgeKey];
+            portEdge.isPort = true
+            portEdge.adjVerticies[0].isPort = true;
+            portEdge.adjVerticies[1].isPort = true;
+        }
     }
     this.intializeBoard();
 }
@@ -283,8 +285,9 @@ function init(){
     //4 wood //4 wheat //4 sheep //3 brick //3 ore //1 desert
     var resourceList = [0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,5,5,5];
     var rollList = [5,2,6,3,8,10,9,12,11,4,8,10,9,4,5,6,3,11];
+    var portList = [[-1,-1,1], [1,-1,2], [3,0,2], [4,2,0], [4,2,0], [4,3,1], [3,4,1], [2,4,2], [2,1,0], [-1,1,0]];
 
-    board = new Board(boardID, resourceList, rollList);
+    board = new Board(boardID, resourceList, rollList, portList);
     paper = initalizeRaphael(1000, 800);
     board.draw(paper, 50, 8, [250,100]);
 //    gameSetup(board, paper, 50, 8, [250,100]);
