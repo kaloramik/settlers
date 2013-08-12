@@ -181,10 +181,3 @@ function disallowSettlements(vertexList){
     }
 }
 
-function colorSettlement(playerNum){
-    if (playerNum == 0)          return 'red';
-    else if (playerNum == 1)     return 'blue';
-    else if (playerNum == 2)     return 'orange';
-    else if (playerNum == 3)     return 'white';
-}
-
