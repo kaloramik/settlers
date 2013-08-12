@@ -249,6 +249,19 @@ function startGame(){
     }
 }
 
+toggle_prob = 0
+function showProb(){
+    var hexList = board.hexList;
+    if (toggle_prob == 0)
+        toggle_prob = 1
+    else
+        toggle_prob = 0
+
+    for (var i=0; i<hexList.length; i++){
+        hexList[i].freqDots.animate({"stroke-opacity":toggle_prob, "fill-opacity":toggle_prob}, 300);
+    }
+}
+
 function gameSetup(board, paper, hexRadius, interHexDist, originCoord){
     //placeSettlement(board, paper, hexRadius, interHexDist, originCoord)
     allowSettlements(board.vertexList, true)
