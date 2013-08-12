@@ -30,6 +30,7 @@ function Hex(hexID, resource, rollNum){
 
     this.initalizeHex = function(){
         this.color = resourceColor(this.resourceType);
+        this.numberColor = numberColor(this.resourceType);
         this.edges = new Array(6);
         this.verticies = new Array(6);
 
@@ -81,19 +82,24 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     this.shape.hover(
         //Function for drawing the hex-dots on hover:
         function() {
-            _this.freqDots.animate({"stroke-opacity":1, "fill-opacity":0.7}, 200);
+            if (start_game)
+                _this.freqDots.animate({"stroke-opacity":1, "fill-opacity":0.7}, 200);
         },
         function(){
-            _this.freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 200);
+            if (start_game)
+                _this.freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 200);
         });
+
+
 
 
     //Draw the roll number
     if (this.rollNum != 0)
-        this.number = paper.text(hexCenter[0], hexCenter[1], String(this.rollNum)).attr({opacity: 10, fill:'#fff', font: '5x Helvetica, Arial'}).toFront();
+        this.number = paper.text(hexCenter[0], hexCenter[1], String(this.rollNum)).attr({opacity: 10, fill:this.numberColor, "font-size": 15, font: '5x Helvetica, Arial'}).toFront();
 
     //Hex-Dots indicating the frequency of rolls:
     this.freqDots = paper.set();
+
     if (this.rollNum != 0){
         var hexDotPosnRadius = drawHexRadius * 0.3
         var hexDotRadius = drawHexRadius * 0.06
@@ -111,7 +117,7 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
             this.freqDots.push(tempDot);
         }
 
-        this.freqDots.attr({"stroke-opacity":0, "fill-opacity": 0});
+        this.freqDots.attr({"stroke-opacity":1, "fill-opacity": 1});
     }
 
 
@@ -174,6 +180,16 @@ function resourceColor(resourceIndex){
     else if (resourceIndex == 3) return '#CCFF99' //sheep
     else if (resourceIndex == 4) return '#7B090B' //brick
     else if (resourceIndex == 5) return '#6F6161' //ore
+}
+
+function numberColor(resourceIndex){
+    //converts the resource index to the corresponding color
+    if (resourceIndex == 0) return '#FFFFFF' //desert
+    else if (resourceIndex == 1) return '#FFFFFF' //wood
+    else if (resourceIndex == 2) return '#321c00' //wheat
+    else if (resourceIndex == 3) return '#254b00' //sheep
+    else if (resourceIndex == 4) return '#fcd5d6' //brick
+    else if (resourceIndex == 5) return '#f2f0f0' //ore
 }
 
 function triangularToCartesian(v_t, hexRadius){

@@ -65,27 +65,31 @@ function Edge(edgeID){
     this.initalizeEdge();
 };
 
-Edge.prototype.build = function() {
+Edge.prototype.build = function(realBuild) {
     if (this.owner != -1)
         return 0;
     var adjVert1 = this.adjVerticies[0];
     var adjVert2 = this.adjVerticies[1];
-    if (adjVert1.owner == curr_player || adjVert2.owner == curr_player){
-        return 1;
-    };
     var allow = 0
+    if (adjVert1.owner == curr_player || adjVert2.owner == curr_player){
+        allow = 1;
+    };
     if (adjVert1.owner == -1){
         for (var i=0; i<adjVert1.adjEdges.length; i++){
-            if (adjVert1.adjEdges[i].owner == curr_player)
+            if (adjVert1.adjEdges[i].owner == curr_player){
                 allow = 1;
+            }
         };
     };
     if (adjVert2.owner == -1){
         for (var i=0; i<adjVert2.adjEdges.length; i++){
-            if (adjVert2.adjEdges[i].owner == curr_player)
+            if (adjVert2.adjEdges[i].owner == curr_player){
                 allow = 1;
+            }
         };
     };
+    if (realBuild && allow == 1)
+        this.owner = curr_player
     return allow
 };
 
@@ -145,8 +149,7 @@ Edge.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     this.path.click(
         // When the mouse comes over the object //
         function(){
-            var canBuild = _this.build()
-            _this.owner = curr_player
+            var canBuild = _this.build(true)
             if (canBuild == 1){
                 var turn_color = colorSettlement(curr_player)
                 this.animate({stroke: turn_color, opacity: 100}, 200);

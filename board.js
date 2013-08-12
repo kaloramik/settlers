@@ -179,6 +179,24 @@ function Board(boardID, resourceList, rollList){
     this.intializeBoard();
 }
 
+Board.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
+    //ctx is Canvas context
+    //paper is Raphael canvas
+    var hexList = this.hexList;
+    var edgeList = this.edgeList;
+    var vertexList = this.vertexList;
+    for (var i=0; i<hexList.length; i++)
+        hexList[i].draw(paper, hexRadius, interHexDist, originCoord);
+    for (var i=0; i<edgeList.length; i++)
+        edgeList[i].draw(paper, hexRadius, interHexDist, originCoord);
+    for (var i=0; i<vertexList.length; i++)
+        vertexList[i].draw(paper, hexRadius, interHexDist, originCoord);
+    this.drawCurrentColorBox(paper);
+}
+
+Board.prototype.drawCurrentColorBox = function(paper) {
+    this.currPlayerColor = paper.rect(50,30,40,40).attr({"fill": colorSettlement(curr_player)})
+};
 
 function fisherYates(myArray){
     //randomizes the elements of the array
@@ -193,6 +211,7 @@ function fisherYates(myArray){
         myArray[j] = tempi;
     }
 }
+
 function initalizeCanvas(width, height){
     //draws the map's current game state - including all road, settlement, thief placements.
     var boardElem = document.getElementById("board");
@@ -210,37 +229,38 @@ function initalizeRaphael(width, height){
     return paper
 }
 
-function drawBoard(board, paper, hexRadius, interHexDist, originCoord){
-    //ctx is Canvas context
-    //paper is Raphael canvas
-    var hexList = board.hexList;
-    var edgeList = board.edgeList;
-    var vertexList = board.vertexList;
-    for (var i=0; i<hexList.length; i++)
-        hexList[i].draw(paper, hexRadius, interHexDist, originCoord);
-    for (var i=0; i<edgeList.length; i++)
-        edgeList[i].draw(paper, hexRadius, interHexDist, originCoord);
-    for (var i=0; i<vertexList.length; i++)
-        vertexList[i].draw(paper, hexRadius, interHexDist, originCoord);
-}
 
 num_players = 4
-turn_number = -num_players * 2
+turn_number = 0
 curr_player = 1
 start_game = false
 
 function rotateTurn(){
     turn_number++;
     curr_player = turn_number % 4;
-    if (turn_number > 0)
-        start_game = true;
+    board.currPlayerColor.attr({"fill": colorSettlement(curr_player)})
 }
 
+function startGame(){
+    start_game = true
+    var hexList = board.hexList;
+    for (var i=0; i<hexList.length; i++){
+        hexList[i].freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 500);
+    }
+}
 
 function gameSetup(board, paper, hexRadius, interHexDist, originCoord){
     //placeSettlement(board, paper, hexRadius, interHexDist, originCoord)
     allowSettlements(board.vertexList, true)
 }
+
+function colorSettlement(playerNum){
+    if (playerNum == 0)          return 'red';
+    else if (playerNum == 1)     return 'blue';
+    else if (playerNum == 2)     return 'orange';
+    else if (playerNum == 3)     return 'white';
+}
+
 
 function init(){
     var boardID = [[0,0],[1,0],[2,0],[3,1],[4,2],[4,3],[4,4],[3,4],[2,4],[1,3],[0,2],[0,1],[1,1],[2,1],[3,2],[3,3],[2,3],[1,2],[2,2]]
@@ -249,9 +269,9 @@ function init(){
     var resourceList = [0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,5,5,5];
     var rollList = [5,2,6,3,8,10,9,12,11,4,8,10,9,4,5,6,3,11];
 
-    var board = new Board(boardID, resourceList, rollList);
+    board = new Board(boardID, resourceList, rollList);
     paper = initalizeRaphael(1000, 800);
-    drawBoard(board, paper, 50, 8, [250,100]);
+    board.draw(paper, 50, 8, [250,100]);
 //    gameSetup(board, paper, 50, 8, [250,100]);
 }
 
