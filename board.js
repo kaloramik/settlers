@@ -42,7 +42,7 @@ function Board(boardID, resourceList, rollList){
         //            2       1                      \       /   
         //     [0,+1]   \   /   [+1,+1]                \   /     
         //                                               2
-        //              EDGES                         VERTICES
+        //              EDGES                         verticies
         //
 
         //randomize the array == randomize the tiles
@@ -62,12 +62,15 @@ function Board(boardID, resourceList, rollList){
                 this.rollList.splice(i,0,0);
 
         for (var i=0; i<this.boardID.length; i++){
+            //for every Hex tile in the Board, this loop will attempt to instantiate the 6
+            //possible edges and verticies. Check the dictionary to see if a given edge/vertex
+            // has not been instantiated yet, and then create them accordingly.
             var x = this.boardID[i][0];
             var y = this.boardID[i][1];
             hex = new Hex(this.boardID[i], this.resourceList[i], this.rollList[i]);
             this.hexList.push(hex);
 
-            //add Edges and Vertices to the Hex
+            //add Edges and verticies to the Hex
             //edge keys are formatted:      'h{}_{}e{}'.format(hexID[0], hexID[1], edgeIndex)
             //vertex keys are formatted:    'h{}_{}v{}'.format(hexID[0], hexID[1], vertexIndex)
             //(refer to Edge and Vertex class docs for how objects are mapped to the their IDs
@@ -76,7 +79,7 @@ function Board(boardID, resourceList, rollList){
                            [x, y, 2],               //edge2
                            [x - 1, y, 0],           //edge3
                            [x - 1, y - 1, 1],       //edge4
-                           [x, y - 1 , 2]];     //edge5
+                           [x, y - 1 , 2]];         //edge5
 
             var vertexIDs = [[x, y, 0],             //vertex0
                              [x, y, 1],             //vertex1
@@ -86,25 +89,25 @@ function Board(boardID, resourceList, rollList){
                              [x - 1, y - 1 , 1]];   //vertex5
 
             for (var j=0; j<6; j++){
-                //Edges
+                //Attempt to create Edges
                 var edgeID = edgeIDs[j];
                 var edgeKey = 'h' + edgeID[0] + '_' + edgeID[1] + 'e' + edgeID[2];
                 if (edgeDict.hasOwnProperty(edgeKey))
-                    hex.edge[j] = edgeDict[edgeKey];
+                    hex.edges[j] = edgeDict[edgeKey];
                 else{
                     var tempEdge = new Edge(edgeID);
-                    hex.edge[j] = tempEdge;
+                    hex.edges[j] = tempEdge;
                     this.edgeList.push(tempEdge);
                     edgeDict[edgeKey] = tempEdge;
                 }
-                //Vertices
+                //Attempt to create verticies
                 var vertexID = vertexIDs[j];
                 var vertexKey = 'h' + vertexID[0] + '_' + vertexID[1] + 'v' + vertexID[2];
                 if (vertexDict.hasOwnProperty(vertexKey))
-                    hex.vertex[j] = edgeDict[vertexKey];
+                    hex.verticies[j] = vertexDict[vertexKey];
                 else{
                     var tempVertex = new Vertex(vertexID);
-                    hex.vertex[j] = tempVertex;
+                    hex.verticies[j] = tempVertex;
                     this.vertexList.push(tempVertex);
                     vertexDict[vertexKey] = tempVertex;
                 }
@@ -113,40 +116,65 @@ function Board(boardID, resourceList, rollList){
             //Connect Edges to Verticies
             //Edges are simple to connect since each time we initalize a Hex object, the Verticies needed for each Edge are already known
             for (var j=0; j<6; j++){
-                var edgeID = edgeIDs[j];
-                var edgeKey = 'h' + edgeID[0] + '_' + edgeID[1] + 'e' + edgeID[2];
-                edgeDict[edgeKey].vertex[0] = vertexDict[vertexIDs[j]]
-                edgeDict[edgeKey].vertex[1] = vertexDict[vertexIDs[j+1]]
+                //adjVerticies[0] should correspond to the "0" Vertex
+                //adjVerticies[1] should correspond to the "1" Vertex
+                if (j % 2 == 0){
+                    hex.edges[j].adjVerticies[0] = hex.verticies[j];
+                    hex.edges[j].adjVerticies[1] = hex.verticies[(j+1)%6];
+                }
+                else{
+                    hex.edges[j].adjVerticies[0] = hex.verticies[(j+1)%6];
+                    hex.edges[j].adjVerticies[1] = hex.verticies[j];
+                }
             }
         }
 
+
         //Connect Verticies to Edges - this needs to be done after all Verticies and Edges are established, because some Verticies don't have 3 edges and we won't know that until all Hex are placed
+        //For every edge, find AdjEdges and for every vertex, find AdjVerticies
         for (var i=0; i<this.vertexList.length; i++){
-            var tempVertex = this.vertexList[i];
-            var x = tempVertex.ID[0];
-            var y = tempVertex.ID[1];
-            var vertexIndex = tempVertex.ID[2];
+            var vertex = this.vertexList[i];
+            var x = vertex.ID[0];
+            var y = vertex.ID[1];
+            var vertexIndex = vertex.ID[2];
             // vertex index == 0  vertexIndex == 1
             //      2\ /3              1|
             //       1|               3/ \2
             var edgeIDs = []
             if (vertexIndex == 0){
+                var oppositeVertexIndex = 1
                 edgeIDs.push([x, y, 0]);
                 edgeIDs.push([x, y-1, 2]);
                 edgeIDs.push([x, y-1, 1]);
             }
-            if (vertexIndex == 1){
+            else if (vertexIndex == 1){
+                var oppositeVertexIndex = 0
                 edgeIDs.push([x, y, 0]);
                 edgeIDs.push([x, y, 1]);
                 edgeIDs.push([x+1, y, 2]);
             }
-            for (var j=0; i<3; i++){
-                var edgeID = edgeIDs[i];
+            for (var j=0; j<3; j++){
+                var edgeID = edgeIDs[j];
                 var edgeKey = 'h' + edgeID[0] + '_' + edgeID[1] + 'e' + edgeID[2];
-                if (edgeDict.hasOwnProperty(edgeKey))
-                    tempVertex.edge.push(edgeDict[edgeKey])
+                if (edgeDict.hasOwnProperty(edgeKey)){
+                    var adjEdge = edgeDict[edgeKey];
+                    vertex.adjEdges.push(adjEdge);
+                    var tempVertex = adjEdge.adjVerticies[oppositeVertexIndex];
+                    vertex.adjVerticies.push(tempVertex);
+                    // if (x==1 && y==1 && vertexIndex==0)
+                    //     alert(tempVertex.ID)
+                }
             }
+
         }
+
+
+        // //For every Edge, find AdjEdges:
+        // for each (var edge in this.edgeList){
+        //     for each (var vertex in edge.adjVertex){
+                
+        //     }
+
     }
     this.intializeBoard();
 }
@@ -178,7 +206,7 @@ function initalizeCanvas(width, height){
 }
 
 function initalizeRaphael(width, height){
-    paper = Raphael(0,0,1000,800);
+    paper = Raphael(100,0,1000,800);
     return paper
 }
 
@@ -189,18 +217,29 @@ function drawBoard(board, paper, hexRadius, interHexDist, originCoord){
     var edgeList = board.edgeList;
     var vertexList = board.vertexList;
     for (var i=0; i<hexList.length; i++)
-        drawHex(hexList[i], paper, hexRadius, interHexDist, originCoord);
+        hexList[i].draw(paper, hexRadius, interHexDist, originCoord);
     for (var i=0; i<edgeList.length; i++)
-        drawEdge(edgeList[i], paper, hexRadius, interHexDist, originCoord);
+        edgeList[i].draw(paper, hexRadius, interHexDist, originCoord);
     for (var i=0; i<vertexList.length; i++)
-        drawVertex(vertexList[i], paper, hexRadius, interHexDist, originCoord);
+        vertexList[i].draw(paper, hexRadius, interHexDist, originCoord);
 }
+
+num_players = 4
+turn_number = -num_players * 2
+curr_player = 1
+start_game = false
+
+function rotateTurn(){
+    turn_number++;
+    curr_player = turn_number % 4;
+    if (turn_number > 0)
+        start_game = true;
+}
+
 
 function gameSetup(board, paper, hexRadius, interHexDist, originCoord){
     //placeSettlement(board, paper, hexRadius, interHexDist, originCoord)
     allowSettlements(board.vertexList, true)
-
-
 }
 
 function init(){

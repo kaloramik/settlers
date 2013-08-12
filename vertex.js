@@ -44,11 +44,12 @@ function Vertex(vertexID){
 
     this.ID = vertexID;
     this.color = 'black';
-    this.edge = [];
-    this.type = 0;
-    this.owner = 0;
+    this.adjEdges = [];
+    this.adjVerticies = [];
+    this.buildingType = 0;  //-1: invalid, 0: valid, x1: settlement, x2: city
+    this.owner = -1;
     this.active = true;
-    this.allowSettle = false;
+    this.allowSettle = [true, true, true, true, true, true];
 //    this.startPoint = edgePoints[0];
 //    this.endPoint = edgePoints[1];
 //
@@ -69,55 +70,82 @@ function Vertex(vertexID){
     this.initalizeVertex();
 }
 
-drawVertex = function(vertex, paper, hexRadius, interHexDist, originCoord){
-    var vertexPt = vertex.coord;
+Vertex.prototype.build = function(realBuild){
+    var allow = 0;
+    if (this.buildingType == 0){
+        if (start_game){
+            for (var i=0; i<this.adjEdges.length; i++)
+                if (this.adjEdges[i].owner == curr_player)
+                    allow = 1;
+            }
+        else if (this.allowSettle[curr_player]){
+            allow = 1;
+        }
+    }
+    else if (this.buildingType == 1 && this.owner == curr_player)
+        allow = 2;
+    if (allow > 0 && realBuild){
+        this.buildingType++
+        this.owner = curr_player
+        for (var i=0; i<this.adjVerticies.length; i++)
+            this.adjVerticies[i].buildingType = -1;
+    }
+    return allow
+}
+
+Vertex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
+    var _this = this
+    var vertexPt = _this.coord;
 
     vertexPt[0] = Math.round(vertexPt[0] * hexRadius + originCoord[0]);
     vertexPt[1] = Math.round(vertexPt[1] * hexRadius + originCoord[1]);
 
-    vertex.settle = paper.set();
-    vertex.settle.push(paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.8));
-    vertex.settle.attr({fill: 'black', opacity: 0});
+    this.settle = paper.set();
+    this.settle.push(paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.8));
+    this.settle.attr({fill: 'black', opacity: 0});
 
-    vertex.settle.hover(
+    this.settle.hover(
         // When the mouse comes over the object //
         function() {
-            this.g = this.glow({color: "#FFF", width: 10});
+            var canBuild = _this.build(false)
+            if (canBuild > 0)
+                this.g = this.glow({color: "#FFF", width: 10});
         },
         // When the mouse goes away //
         function() {
-            this.g.remove();
+            var canBuild = _this.build(false)
+            if (canBuild > 0)
+                this.g.remove();
         });
-    vertex.settle.click(
+    this.settle.click(
         // When the mouse comes over the object //
-        function() {
-            if (vertex.type == 0){
-                this.animate({fill: "red", opacity: 1}, 200);
-                vertex.type = 1;
-            }
-            else if (vertex.type == 1){
-                this.animate({fill: "red", opacity: 1, r: interHexDist * 1.2}, 200);
-                vertex.settle.push(paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.3).attr({fill: 'black', opacity: 1}));
+        function(){
+            var turnColor = colorSettlement(curr_player)
+            var canBuild = _this.build(true)
+            if (canBuild == 1)
+                this.animate({fill: turnColor, opacity: 1}, 200);
+            else if (canBuild == 2){
+                this.animate({fill: turnColor, opacity: 1, r: interHexDist * 1.2}, 200);
+                _this.settle.push(paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.3).attr({fill: 'black', opacity: 1}));
 
-                if (vertex.ID[2] == 0){
-                    vertex.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + vertexPt[0] + ' ' + (vertexPt[1] - interHexDist * 0.3) + 'z').attr({stroke: 'black', "stroke-opacity": 1}).toFront());
-                    vertex.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] - Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] - interHexDist * 0.3 / 2.0) + 'z').attr({stroke: 'black', opacity: 50}).toFront());
-                    vertex.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] + Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] - interHexDist * 0.3 / 2.0)).attr({stroke: 'black', opacity: 50}).toFront());
+                if (_this.ID[2] == 0){
+                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + vertexPt[0] + ' ' + (vertexPt[1] - interHexDist * 0.3) + 'z').attr({stroke: 'black', "stroke-opacity": 1}).toFront());
+                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] - Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] - interHexDist * 0.3 / 2.0) + 'z').attr({stroke: 'black', opacity: 50}).toFront());
+                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] + Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] - interHexDist * 0.3 / 2.0)).attr({stroke: 'black', opacity: 50}).toFront());
                 }
                 else{
-                    vertex.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + vertexPt[0] + ',' + (vertexPt[1] + interHexDist * 0.3)).attr({stroke: 'black', opacity: 1}).toFront());
-                    vertex.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] - Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] + interHexDist * 0.3 / 2.0)).attr({stroke: 'black', opacity: 1}).toFront());
-                    vertex.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] + Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] + interHexDist * 0.3 / 2.0)).attr({stroke: 'black', opacity: 1}).toFront());
+                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + vertexPt[0] + ',' + (vertexPt[1] + interHexDist * 0.3)).attr({stroke: 'black', opacity: 1}).toFront());
+                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] - Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] + interHexDist * 0.3 / 2.0)).attr({stroke: 'black', opacity: 1}).toFront());
+                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] + Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] + interHexDist * 0.3 / 2.0)).attr({stroke: 'black', opacity: 1}).toFront());
                 }
             }
         });
 }
+
 function placeSettlement(board, paper, hexRadius, interHexDist, originCoord){
     var tempSet = paper.set();
     for (var i=0; i<board.vertexList.length; i++)
         tempSet.push(board.vertexList[i].settle)
-
-
 }
 
 function allowSettlements(vertexList, gameSetup){
@@ -137,7 +165,7 @@ function allowSettlements(vertexList, gameSetup){
 }
 
 function building(vertex){
-            vertex.type = 1;
+            vertex.buildingType = 1;
             vertex.owner = 1;
             vertex.color = colorSettlement(1);
             vertex.settle.animate({fill: vertex.color, opacity: 1}, 200);
@@ -153,12 +181,10 @@ function disallowSettlements(vertexList){
     }
 }
 
-
-
 function colorSettlement(playerNum){
-    if (playerNum == 0)          return '#277D09';
+    if (playerNum == 0)          return 'red';
     else if (playerNum == 1)     return 'blue';
-    else if (playerNum == 2)     return 'green';
-    else if (playerNum == 3)     return 'purple';
+    else if (playerNum == 2)     return 'orange';
+    else if (playerNum == 3)     return 'white';
 }
 

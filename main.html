@@ -8,8 +8,8 @@
 
 <script type="text/javascript" src="board.js"></script>
 <script type="text/javascript" src="hex.js"></script>
-<script type="text/javascript" src="edge.js"></script>
 <script type="text/javascript" src="vertex.js"></script>
+<script type="text/javascript" src="edge.js"></script>
 <script type="text/javascript" src="raphael-min.js"></script>
 <!--
 
@@ -25,7 +25,6 @@
 <canvas id="boardCanvas"></canvas>
 </div>
 
-
 </head>
 <body>
     <!--Fields for adding Roads-->
@@ -36,7 +35,12 @@
     <br>
     <br>
     <div> <button id="city">City</button> </div>
-
+    <br>
+    <br>
+    <div> <button id="turn" onClick="rotateTurn()">turn</button> </div>
+    <br>
+    <br>
+    <div> <button id="start_game" onClick="startGame)">Start Game</button> </div>
 </body>
 
 

@@ -14,12 +14,10 @@
   height: 45px;
 }
 
-
 #title p {
   margin-top: 3px;
   margin-right: 0;
 }
-
 
 #title a:hover,
 #title a:focus {
@@ -31,9 +29,6 @@
   left: -13px;
 }
 
-
-
-
 a {
 	color:#006699;
 	font-weight:bold;
@@ -43,18 +38,11 @@ a:hover {
 	color:#0099CC;
 }
 
-
-
-
-
-
 #leftCol{
     float: left;
     font-family: "Trebuchet MS", Arial;
     color:#c2bcb5 
 }
-
-
 
 #plots{
     float: left;

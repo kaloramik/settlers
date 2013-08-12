@@ -43,17 +43,13 @@ function Edge(edgeID){
     //
 
     this.ID = edgeID;
-
-    this.buildRoad = function(playerNum){
-        if (playerNum == 0)          this.color = '#277D09';
-        else if (playerNum == 1)     this.color = 'blue';
-        else if (playerNum == 2)     this.color = 'green';
-        else if (playerNum == 3)     this.color = 'purple';
-    }
+    this.adjEdges = [];
+    this.owner = -1;
+    this.allowRoad = [false, false, false, false, false, false];
 
     this.initalizeEdge = function(){
         this.color = 'transparent';
-        this.vertex = [];
+        this.adjVerticies = new Array(2);
         //sets this.start and this.end, keeping radius=1, and origin=(0,0)
         var hexID = this.ID.slice(0,2);
         var edgeID = this.ID[2];
@@ -67,30 +63,55 @@ function Edge(edgeID){
     }
 
     this.initalizeEdge();
-}
+};
 
-drawEdge = function(edge, paper, hexRadius, interHexDist, originCoord){
+Edge.prototype.build = function() {
+    if (this.owner != -1)
+        return 0;
+    var adjVert1 = this.adjVerticies[0];
+    var adjVert2 = this.adjVerticies[1];
+    if (adjVert1.owner == curr_player || adjVert2.owner == curr_player){
+        return 1;
+    };
+    var allow = 0
+    if (adjVert1.owner == -1){
+        for (var i=0; i<adjVert1.adjEdges.length; i++){
+            if (adjVert1.adjEdges[i].owner == curr_player)
+                allow = 1;
+        };
+    };
+    if (adjVert2.owner == -1){
+        for (var i=0; i<adjVert2.adjEdges.length; i++){
+            if (adjVert2.adjEdges[i].owner == curr_player)
+                allow = 1;
+        };
+    };
+    return allow
+};
+
+Edge.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
+    var _this = this;
     var roadWidth = interHexDist * 0.5;
-    var startPt = edge.start;
+    var startPt = this.start;
     startPt[0] = startPt[0] * hexRadius + originCoord[0];
     startPt[1] = startPt[1] * hexRadius + originCoord[1];
 
-    var endPt = edge.end;
+    var endPt = this.end;
     endPt[0] = endPt[0] * hexRadius + originCoord[0];
     endPt[1] = endPt[1] * hexRadius + originCoord[1];
 
     //Leaves room for settlements
-    if (edge.ID[2] == 0){
+    if (this.ID[2] == 0){
         startPt[1] += interHexDist / (Math.sqrt(3) * 2);
         endPt[1] -= interHexDist / (Math.sqrt(3) * 2);
     }
-    else if (edge.ID[2] == 1){
+    else if (this.ID[2] == 1){
         startPt[0] -= interHexDist / 4.0;
         startPt[1] += interHexDist / (Math.sqrt(3) * 4);
         endPt[0] += interHexDist / 4.0;
         endPt[1] -= interHexDist / (Math.sqrt(3) * 4);
     }
-    else if (edge.ID[2] == 2){
+    else if (this.ID[2] == 2){
         startPt[0] -= interHexDist / 4.0;
         startPt[1] -= interHexDist / (Math.sqrt(3) * 4);
         endPt[0] += interHexDist / 4.0;
@@ -102,34 +123,43 @@ drawEdge = function(edge, paper, hexRadius, interHexDist, originCoord){
     endPt[0] = Math.round(endPt[0]);
     endPt[1] = Math.round(endPt[1]);
 
-    //using Raphael - store the line in edge.path
-    edge.path = paper.path('M' + startPt[0] + ',' + startPt[1] + ',L' + endPt[0] + ',' + endPt[1]);
-    edge.path.attr("stroke-width", String(roadWidth));
-    edge.path.attr("stroke", 'black');
-    edge.path.attr("opacity", 0);
-    edge.path.hover(
+    //using Raphael - store the line in this.path
+    this.path = paper.path('M' + startPt[0] + ',' + startPt[1] + ',L' + endPt[0] + ',' + endPt[1]);
+    this.path.attr("stroke-width", String(roadWidth));
+    this.path.attr("stroke", 'black');
+    this.path.attr("opacity", 0);
+    this.path.hover(
         // When the mouse comes over the object //
         function(){
-            this.g = this.glow({color: "#FFF", width: 10});
+            var canBuild = _this.build()
+            if (canBuild == 1)
+                this.g = this.glow({color: "#FFF", width: 10});
+            else
+                this.g = paper.set()
         },
         // When the mouse goes away //
-        function() {
+        function(){
             this.g.remove();
         });
 
-    edge.path.click(
+    this.path.click(
         // When the mouse comes over the object //
-        function() {
-            this.animate({stroke: "red", opacity: 100}, 200);
+        function(){
+            var canBuild = _this.build()
+            _this.owner = curr_player
+            if (canBuild == 1){
+                var turn_color = colorSettlement(curr_player)
+                this.animate({stroke: turn_color, opacity: 100}, 200);
+            };
         });
 
     /* using Canvas
     ctx.beginPath();
-    ctx.strokeStyle = edge.color;
+    ctx.strokeStyle = this.color;
     ctx.lineWidth = roadWidth; 
     ctx.moveTo(startPt[0], startPt[1]);
     ctx.lineTo(endPt[0], endPt[1]);
     ctx.closePath();
     ctx.stroke();
     */
-}
+};

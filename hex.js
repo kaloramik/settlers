@@ -30,8 +30,8 @@ function Hex(hexID, resource, rollNum){
 
     this.initalizeHex = function(){
         this.color = resourceColor(this.resourceType);
-        this.edge = new Array(6);
-        this.vertex = new Array(6);
+        this.edges = new Array(6);
+        this.verticies = new Array(6);
 
         //sets this.coord and this.end, keeping radius=1, and origin=(0,0)
         var hexID = this.ID;
@@ -49,15 +49,16 @@ function Hex(hexID, resource, rollNum){
     this.initalizeHex()
 }
 
-drawHex = function(hex, paper, hexRadius, interHexDist, originCoord){
+Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     //hex:          hex object
     //paper:          Raphael Paper object
     //hexRadius:    radius for each Hex tile 
     //interhexDist: distance bewteen two Hex tiles
     //originCoord:  the center coordinate of the [0,0] Hex tile
 
-    var hexCenter = [hex.center[0] * hexRadius + originCoord[0], hex.center[1] * hexRadius + originCoord[1]];
-    var hexPoints = hex.hexPoints;
+    var hexCenter = [this.center[0] * hexRadius + originCoord[0], this.center[1] * hexRadius + originCoord[1]];
+    var hexPoints = this.hexPoints;
+    var _this = this
 
     //Draw the Hexagon
     var drawHexRadius =  hexRadius - interHexDist / 2.0;
@@ -75,42 +76,42 @@ drawHex = function(hex, paper, hexRadius, interHexDist, originCoord){
         moveString += drawPoints[i][0] + ' ' + drawPoints[i][1];
     }
     moveString += 'Z';
-    hex.shape = paper.path(moveString);
-    hex.shape.attr({stroke: "none", fill: hex.color, opacity: 10});
-    hex.shape.hover(
+    this.shape = paper.path(moveString);
+    this.shape.attr({stroke: "none", fill: this.color, opacity: 10});
+    this.shape.hover(
         //Function for drawing the hex-dots on hover:
         function() {
-            hex.freqDots.animate({"stroke-opacity":1, "fill-opacity":0.7}, 200);
+            _this.freqDots.animate({"stroke-opacity":1, "fill-opacity":0.7}, 200);
         },
         function(){
-            hex.freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 200);
+            _this.freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 200);
         });
 
 
     //Draw the roll number
-    if (hex.rollNum != 0)
-        hex.number = paper.text(hexCenter[0], hexCenter[1], String(hex.rollNum)).attr({opacity: 10, fill:'#fff', font: '5x Helvetica, Arial'}).toFront();
+    if (this.rollNum != 0)
+        this.number = paper.text(hexCenter[0], hexCenter[1], String(this.rollNum)).attr({opacity: 10, fill:'#fff', font: '5x Helvetica, Arial'}).toFront();
 
     //Hex-Dots indicating the frequency of rolls:
-    hex.freqDots = paper.set();
-    if (hex.rollNum != 0){
+    this.freqDots = paper.set();
+    if (this.rollNum != 0){
         var hexDotPosnRadius = drawHexRadius * 0.3
         var hexDotRadius = drawHexRadius * 0.06
-        pentPoints = hex.pentPoints;
+        pentPoints = this.pentPoints;
         for (var i=0; i<5; i++){
             var tempX = Math.round(pentPoints[i][0] * hexDotPosnRadius + hexCenter[0]);
             var tempY = Math.round(pentPoints[i][1] * hexDotPosnRadius + hexCenter[1]);
             drawPoints.push([tempX, tempY]);
             var tempDot = paper.circle(tempX, tempY, hexDotRadius)
 
-            if (i < 6 - Math.abs(hex.rollNum - 7))
+            if (i < 6 - Math.abs(this.rollNum - 7))
                 tempDot.attr("fill", 'black');
             else
                 tempDot.attr("fill", 'none');
-            hex.freqDots.push(tempDot);
+            this.freqDots.push(tempDot);
         }
 
-        hex.freqDots.attr({"stroke-opacity":0, "fill-opacity": 0});
+        this.freqDots.attr({"stroke-opacity":0, "fill-opacity": 0});
     }
 
 
