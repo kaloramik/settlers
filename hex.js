@@ -77,9 +77,9 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         moveString += drawPoints[i][0] + ' ' + drawPoints[i][1];
     }
     moveString += 'Z';
-    this.shape = paper.path(moveString);
-    this.shape.attr({stroke: "none", fill: this.color, opacity: 10});
-    this.shape.hover(
+    hexShape = paper.path(moveString);
+    hexShape.attr({stroke: "none", fill: this.color, opacity: 10});
+    hexShape.hover(
         //Function for drawing the hex-dots on hover:
         function() {
             if (start_game && toggle_prob == 0)
@@ -94,8 +94,14 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
 
 
     //Draw the roll number
-    if (this.rollNum != 0)
-        this.number = paper.text(hexCenter[0], hexCenter[1], String(this.rollNum)).attr({opacity: 10, fill:this.numberColor, "font-size": 15, font: '5x Helvetica, Arial'}).toFront();
+    if (this.rollNum != 0){
+        this.number = paper.text(hexCenter[0], hexCenter[1], String(this.rollNum))
+        this.number.attr({opacity: 10, fill:this.numberColor, font: '5x Helvetica, Arial'}).toFront();
+        if (this.rollNum == 6 || this.rollNum == 8)
+            this.number.attr({"font-size": 18});
+        else
+            this.number.attr({"font-size": 15});
+    }
 
     //Hex-Dots indicating the frequency of rolls:
     this.freqDots = paper.set();

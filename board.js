@@ -1,7 +1,7 @@
 //Board class
 //
 
-function Board(boardID, resourceList, rollList, portList){
+function Board(boardID, resourceList, rollList, portList, portResourceList){
     //
     //        _0__1__2__3__4__ x            _0__1__2__3__4__ x
     //      0 /__/__/__/__/__/           0 /00/10/20/__/__/
@@ -23,6 +23,7 @@ function Board(boardID, resourceList, rollList, portList){
     this.resourceList = resourceList;
     this.rollList = rollList;
     this.portList = portList;
+    this.portResourceList = portResourceList;
     
 
     //the radius for a single hex
@@ -48,6 +49,7 @@ function Board(boardID, resourceList, rollList, portList){
 
         //randomize the array == randomize the tiles
         fisherYates(this.resourceList);
+        fisherYates(this.portResourceList);
 
         this.hexList = [];
         this.edgeList = [];
@@ -114,6 +116,7 @@ function Board(boardID, resourceList, rollList, portList){
                 }
             }
 
+
             //Connect Edges to Verticies
             //Edges are simple to connect since each time we initalize a Hex object, the Verticies needed for each Edge are already known
             for (var j=0; j<6; j++){
@@ -162,23 +165,26 @@ function Board(boardID, resourceList, rollList, portList){
                     vertex.adjEdges.push(adjEdge);
                     var tempVertex = adjEdge.adjVerticies[oppositeVertexIndex];
                     vertex.adjVerticies.push(tempVertex);
-                    // if (x==1 && y==1 && vertexIndex==0)
-                    //     alert(tempVertex.ID)
                 }
             }
 
         }
         //Ports:
         for (var i=0; i<this.portList.length; i++){
-            var edgeID = this.portList[i];
-            var edgeKey = 'h' + edgeID[0] + '_' + edgeID[1] + 'e' + edgeID[2];
+            //first 3 indicies of portID are the edgeID. 4th index is the positioning of the port
+            var portID = this.portList[i];
+            var edgeKey = 'h' + portID[0] + '_' + portID[1] + 'e' + portID[2];
             var portEdge = edgeDict[edgeKey];
-            portEdge.isPort = true
-            portEdge.adjVerticies[0].isPort = true;
-            portEdge.adjVerticies[1].isPort = true;
+            portEdge.portOrientation = portID[3];
+            var portResource = this.portResourceList[i];
+            portEdge.portType = portResource;
+            portEdge.adjVerticies[0].portType = portResource;
+            portEdge.adjVerticies[1].portType = portResource;
         }
+
     }
     this.intializeBoard();
+
 }
 
 Board.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
@@ -187,10 +193,12 @@ Board.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     var hexList = this.hexList;
     var edgeList = this.edgeList;
     var vertexList = this.vertexList;
+
     for (var i=0; i<hexList.length; i++)
         hexList[i].draw(paper, hexRadius, interHexDist, originCoord);
-    for (var i=0; i<edgeList.length; i++)
+    for (var i=0; i<edgeList.length; i++){
         edgeList[i].draw(paper, hexRadius, interHexDist, originCoord);
+    }
     for (var i=0; i<vertexList.length; i++)
         vertexList[i].draw(paper, hexRadius, interHexDist, originCoord);
     this.drawCurrentColorBox(paper);
@@ -285,9 +293,10 @@ function init(){
     //4 wood //4 wheat //4 sheep //3 brick //3 ore //1 desert
     var resourceList = [0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,5,5,5];
     var rollList = [5,2,6,3,8,10,9,12,11,4,8,10,9,4,5,6,3,11];
-    var portList = [[-1,-1,1], [1,-1,2], [3,0,2], [4,2,0], [4,2,0], [4,3,1], [3,4,1], [2,4,2], [2,1,0], [-1,1,0]];
+    var portList = [[-1,-1,1,4], [1,-1,2,5], [3,0,2,5], [4,2,0,0], [4,3,1,1], [3,4,1,1], [2,4,2,2], [0,3,0,3], [-1,1,0,3]];
+    var portResourceList = [0,0,0,0,1,2,3,4,5]
 
-    board = new Board(boardID, resourceList, rollList, portList);
+    board = new Board(boardID, resourceList, rollList, portList, portResourceList);
     paper = initalizeRaphael(1000, 800);
     board.draw(paper, 50, 8, [250,100]);
 //    gameSetup(board, paper, 50, 8, [250,100]);
