@@ -48,8 +48,10 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
         //
 
         //randomize the array == randomize the tiles
-        fisherYates(this.resourceList);
-        fisherYates(this.portResourceList);
+        if (debug == false){
+            fisherYates(this.resourceList);
+            fisherYates(this.portResourceList);
+        }
 
         this.hexList = [];
         this.edgeList = [];
@@ -243,9 +245,10 @@ num_players = 4
 turn_number = 0
 curr_player = 1
 start_game = false
+debug = true
 
 dice_list = []
-dice = -1
+dice = 0
 
 function rotateTurn(){
     turn_number++;
@@ -259,24 +262,37 @@ function rotateTurn(){
         board.diceRoll.attr({"fill": "black", "stroke": "black"})
 }
 
+function animateHex(hex){
+    hex.hexShape.animate({"fill": hex.brighterColor}, 200, function(){
+        hex.hexShape.animate({"fill": hex.color}, 400);
+    });
+}
+
+function animateVertex(vertex){
+    var anim = Raphael.animation({"fill": vertex.brighterColor}, 200, function(){
+        this.animate({"fill": vertex.color}, 400);
+    });
+    vertex.settle.animate(anim.delay(400))
+}
 function rollDie(){
-    dice = Math.floor(Math.random() * 6 + 1) + Math.floor(Math.random() * 6 + 1);
+    if (debug == false)
+        dice = Math.floor(Math.random() * 6 + 1) + Math.floor(Math.random() * 6 + 1);
+    else
+        dice = dice + 1
+        dice = dice % 12
     dice_list.push(dice)
     board.diceRoll.attr({"text": dice})
     var hexList = board.hexList;
     var vertexList = board.vertexList;
+
     for (var i=0; i<hexList.length; i++){
         var hex = hexList[i];
         if (hex.rollNum == dice){
-            hex.hexShape.animate({"opacity": 0.5}, 500, function(){
-               this.animate({"opacity": 1}, 500);
-            })
+            animateHex(hex);
             for (var j=0; j<hex.verticies.length; j++){
                 var vertex = hex.verticies[j];
                 if (vertex.owner != -1){
-                    var anim = Raphael.animation({"opacity": 0.5}, 500, function(){
-                    this.animate({"opacity": 1}, 500);})
-                    vertex.settle.animate(anim.delay(300))
+                    animateVertex(vertex);
                 }
             }
         }
@@ -316,6 +332,13 @@ function colorSettlement(playerNum){
     else if (playerNum == 1)     return 'blue';
     else if (playerNum == 2)     return 'orange';
     else if (playerNum == 3)     return 'white';
+}
+
+function colorSettlementAlternate(playerNum){
+    if (playerNum == 0)          return '#FF9999';
+    else if (playerNum == 1)     return '#66CCFF';
+    else if (playerNum == 2)     return '#FFFFCC';
+    else if (playerNum == 3)     return '#888888';
 }
 
 

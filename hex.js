@@ -30,7 +30,7 @@ function Hex(hexID, resource, rollNum){
 
     this.initalizeHex = function(){
         this.color = resourceColor(this.resourceType);
-        this.brighterColor = resourceBrightColor(this.color);
+        this.brighterColor = resourceColorAlternate(this.resourceType);
         this.numberColor = numberColor(this.resourceType);
         this.edges = new Array(6);
         this.verticies = new Array(6);
@@ -189,10 +189,13 @@ function resourceColor(resourceIndex){
     else if (resourceIndex == 5) return '#6F6161' //ore
 }
 
-function resourceBrightColor(color){
-    var hsb = Raphael.rgb2hsb(color)
-    hsb.b = hsb.b * 1.1
-    return Raphael.hsb2rgb(hsb)
+function resourceColorAlternate(resourceIndex){
+    //converts the resource index to the corresponding color
+    if (resourceIndex == 1) return '#33FF33' //wood
+    else if (resourceIndex == 2) return '#FFFF66' //wheat
+    else if (resourceIndex == 3) return '#FFFFFF' //sheep
+    else if (resourceIndex == 4) return '#FF3366' //brick
+    else if (resourceIndex == 5) return '#C8C8C8' //ore
 }
 
 function numberColor(resourceIndex){

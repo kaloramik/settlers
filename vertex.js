@@ -44,6 +44,7 @@ function Vertex(vertexID){
 
     this.ID = vertexID;
     this.color = 'black';
+    this.brighterColor = 'black';
     this.adjEdges = [];
     this.adjVerticies = [];
     this.buildingType = 0;  //-1: invalid, 0: valid, x1: settlement, x2: city
@@ -125,14 +126,16 @@ Vertex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         // When the mouse comes over the object //
         function(){
 
-            var turnColor = colorSettlement(curr_player)
             var canBuild = _this.build(true)
-            if (canBuild == 1)
-                this.animate({fill: turnColor, opacity: 1}, 200);
+            if (canBuild == 1){
+                _this.color = colorSettlement(curr_player);
+                _this.brighterColor = colorSettlementAlternate(curr_player);
+                this.animate({fill: _this.color, opacity: 1}, 200);
+            }
             else if (canBuild == 2){
                 // hoverev.g.remove();
                 // _this.settle.unhover();
-                this.animate({fill: turnColor, opacity: 1, r: interHexDist * 1.2}, 200);
+                this.animate({fill: _this.color, opacity: 1, r: interHexDist * 1.2}, 200);
                 _this.settle.push(paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.3).attr({fill: 'black', opacity: 1}));
 
                 if (_this.ID[2] == 0){
@@ -187,4 +190,3 @@ function disallowSettlements(vertexList){
         //vertex.settleclick.remove();
     }
 }
-
