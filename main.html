@@ -6,11 +6,11 @@
 <meta content="settlers of catan" name="keywords" />
 <link rel="stylesheet" href="main.css" />
 
+<script type="text/javascript" src="raphael-min.js"></script>
 <script type="text/javascript" src="board.js"></script>
 <script type="text/javascript" src="hex.js"></script>
 <script type="text/javascript" src="vertex.js"></script>
 <script type="text/javascript" src="edge.js"></script>
-<script type="text/javascript" src="raphael-min.js"></script>
 <!--
 
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
@@ -37,7 +37,10 @@
     <div> <button id="city">City</button> </div>
     <br>
     <br>
- -->    <div> <button id="turn" onClick="rotateTurn()">turn</button> </div>
+ -->
+    <div> <button id="turn" onClick="rotateTurn()">turn</button> </div>
+    <br>
+    <div> <button id="roll_die" onClick="rollDie()">Roll</button> </div>
     <br>
     <div> <button id="start_game" onClick="startGame()">Start Game</button> </div>
     <br>

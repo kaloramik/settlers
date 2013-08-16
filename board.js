@@ -70,7 +70,7 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
             // has not been instantiated yet, and then create them accordingly.
             var x = this.boardID[i][0];
             var y = this.boardID[i][1];
-            hex = new Hex(this.boardID[i], this.resourceList[i], this.rollList[i]);
+            var hex = new Hex(this.boardID[i], this.resourceList[i], this.rollList[i]);
             this.hexList.push(hex);
 
             //add Edges and verticies to the Hex
@@ -196,9 +196,8 @@ Board.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
 
     for (var i=0; i<hexList.length; i++)
         hexList[i].draw(paper, hexRadius, interHexDist, originCoord);
-    for (var i=0; i<edgeList.length; i++){
+    for (var i=0; i<edgeList.length; i++)
         edgeList[i].draw(paper, hexRadius, interHexDist, originCoord);
-    }
     for (var i=0; i<vertexList.length; i++)
         vertexList[i].draw(paper, hexRadius, interHexDist, originCoord);
     this.drawCurrentColorBox(paper);
@@ -206,6 +205,7 @@ Board.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
 
 Board.prototype.drawCurrentColorBox = function(paper) {
     this.currPlayerColor = paper.rect(50,30,40,40).attr({"fill": colorSettlement(curr_player)})
+    this.diceRoll = paper.text(70,50, "").attr({"font-size": 24, "stroke": "white", "fill": "white"})
 };
 
 function fisherYates(myArray){
@@ -239,20 +239,53 @@ function initalizeRaphael(width, height){
     return paper
 }
 
-
 num_players = 4
 turn_number = 0
 curr_player = 1
 start_game = false
 
+dice_list = []
+dice = -1
+
 function rotateTurn(){
     turn_number++;
     curr_player = turn_number % 4;
-    board.currPlayerColor.attr({"fill": colorSettlement(curr_player)})
+    var color = colorSettlement(curr_player)
+    board.currPlayerColor.attr({"fill": color})
+    board.diceRoll.attr({"text": ""})
+    if (color == 'blue')
+        board.diceRoll.attr({"fill": "white", "stroke": "white"})
+    else
+        board.diceRoll.attr({"fill": "black", "stroke": "black"})
+}
+
+function rollDie(){
+    dice = Math.floor(Math.random() * 6 + 1) + Math.floor(Math.random() * 6 + 1);
+    dice_list.push(dice)
+    board.diceRoll.attr({"text": dice})
+    var hexList = board.hexList;
+    var vertexList = board.vertexList;
+    for (var i=0; i<hexList.length; i++){
+        var hex = hexList[i];
+        if (hex.rollNum == dice){
+            hex.hexShape.animate({"opacity": 0.5}, 500, function(){
+               this.animate({"opacity": 1}, 500);
+            })
+            for (var j=0; j<hex.verticies.length; j++){
+                var vertex = hex.verticies[j];
+                if (vertex.owner != -1){
+                    var anim = Raphael.animation({"opacity": 0.5}, 500, function(){
+                    this.animate({"opacity": 1}, 500);})
+                    vertex.settle.animate(anim.delay(300))
+                }
+            }
+        }
+    }
+
 }
 
 function startGame(){
-    start_game = true
+    start_game = true;
     var hexList = board.hexList;
     for (var i=0; i<hexList.length; i++){
         hexList[i].freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 500);
@@ -267,7 +300,6 @@ function showProb(){
             toggle_prob = 1
         else
             toggle_prob = 0
-
         for (var i=0; i<hexList.length; i++){
             hexList[i].freqDots.animate({"stroke-opacity":toggle_prob, "fill-opacity":toggle_prob}, 300);
         }
@@ -305,3 +337,4 @@ function init(){
 window.onload = function(){
     init();
 }
+

@@ -48,7 +48,7 @@ function Vertex(vertexID){
     this.adjVerticies = [];
     this.buildingType = 0;  //-1: invalid, 0: valid, x1: settlement, x2: city
     this.owner = -1;
-    this.isPort = false;
+    this.portType = false;
     this.active = true;
     this.allowSettle = [true, true, true, true, true, true];
 //    this.startPoint = edgePoints[0];
@@ -103,29 +103,35 @@ Vertex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
 
     this.settle = paper.set();
     this.settle.push(paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.8));
+    // if (this.porttype != -1)
+    //     this.settle.push(paper.text(vertexpt[0], vertexpt[1],'⚓'))
     this.settle.attr({fill: 'black', opacity: 0});
 
-    this.settle.hover(
+    var hoverer = this.settle.hover(
         // When the mouse comes over the object //
-        function() {
+        function(){
             var canBuild = _this.build(false)
             if (canBuild > 0)
                 this.g = this.glow({color: "#FFF", width: 10});
         },
         // When the mouse goes away //
-        function() {
+        function(){
             var canBuild = _this.build(false)
             if (canBuild > 0)
                 this.g.remove();
-        });
+        }); 
+
     this.settle.click(
         // When the mouse comes over the object //
         function(){
+
             var turnColor = colorSettlement(curr_player)
             var canBuild = _this.build(true)
             if (canBuild == 1)
                 this.animate({fill: turnColor, opacity: 1}, 200);
             else if (canBuild == 2){
+                // hoverev.g.remove();
+                // _this.settle.unhover();
                 this.animate({fill: turnColor, opacity: 1, r: interHexDist * 1.2}, 200);
                 _this.settle.push(paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.3).attr({fill: 'black', opacity: 1}));
 

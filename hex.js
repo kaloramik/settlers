@@ -30,6 +30,7 @@ function Hex(hexID, resource, rollNum){
 
     this.initalizeHex = function(){
         this.color = resourceColor(this.resourceType);
+        this.brighterColor = resourceBrightColor(this.color);
         this.numberColor = numberColor(this.resourceType);
         this.edges = new Array(6);
         this.verticies = new Array(6);
@@ -77,9 +78,9 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         moveString += drawPoints[i][0] + ' ' + drawPoints[i][1];
     }
     moveString += 'Z';
-    hexShape = paper.path(moveString);
-    hexShape.attr({stroke: "none", fill: this.color, opacity: 10});
-    hexShape.hover(
+    this.hexShape = paper.path(moveString);
+    this.hexShape.attr({stroke: "none", fill: this.color, opacity: 1});
+    this.hexShape.hover(
         //Function for drawing the hex-dots on hover:
         function() {
             if (start_game && toggle_prob == 0)
@@ -96,7 +97,7 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     //Draw the roll number
     if (this.rollNum != 0){
         this.number = paper.text(hexCenter[0], hexCenter[1], String(this.rollNum))
-        this.number.attr({opacity: 10, fill:this.numberColor, font: '5x Helvetica, Arial'}).toFront();
+        this.number.attr({opacity: 1, fill:this.numberColor, font: '5x Helvetica, Arial'}).toFront();
         if (this.rollNum == 6 || this.rollNum == 8)
             this.number.attr({"font-size": 18});
         else
@@ -186,6 +187,12 @@ function resourceColor(resourceIndex){
     else if (resourceIndex == 3) return '#CCFF99' //sheep
     else if (resourceIndex == 4) return '#7B090B' //brick
     else if (resourceIndex == 5) return '#6F6161' //ore
+}
+
+function resourceBrightColor(color){
+    var hsb = Raphael.rgb2hsb(color)
+    hsb.b = hsb.b * 1.1
+    return Raphael.hsb2rgb(hsb)
 }
 
 function numberColor(resourceIndex){

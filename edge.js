@@ -145,7 +145,7 @@ Edge.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         function(){
             var canBuild = _this.build()
             if (canBuild == 1)
-                this.g = this.glow({color: "#FFF", width: 10});
+                this.g = this.glow({"color": "#FFF", width: 10});
             else
                 this.g = paper.set()
         },
