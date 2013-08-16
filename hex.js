@@ -38,16 +38,10 @@ function Hex(hexID, resource, rollNum){
         //sets this.coord and this.end, keeping radius=1, and origin=(0,0)
         var hexID = this.ID;
         this.center = triangularToCartesian(hexID, 1);
-        this.hexPoints = getVerticiesOfHex(1);
+        Hex.prototype.hexPoints = getVerticiesOfHex(1);
         this.pentPoints = getVerticiesOfPent(1);
     }
 
-    this.buildSettlement = function(playerNum){
-        if (playerNum == 0)          this.color = '#277D09';
-        else if (playerNum == 1)     this.color = 'blue';
-        else if (playerNum == 2)     this.color = 'green';
-        else if (playerNum == 3)     this.color = 'purple';
-    }
     this.initalizeHex()
 }
 
@@ -59,7 +53,8 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     //originCoord:  the center coordinate of the [0,0] Hex tile
 
     var hexCenter = [this.center[0] * hexRadius + originCoord[0], this.center[1] * hexRadius + originCoord[1]];
-    var hexPoints = this.hexPoints;
+    this.hexCenter = hexCenter;
+    var hexPoints = Hex.prototype.hexPoints;
     var _this = this
 
     //Draw the Hexagon
@@ -78,9 +73,9 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         moveString += drawPoints[i][0] + ' ' + drawPoints[i][1];
     }
     moveString += 'Z';
-    this.hexShape = paper.path(moveString);
-    this.hexShape.attr({stroke: "none", fill: this.color, opacity: 1});
-    this.hexShape.hover(
+    var hexElem = paper.path(moveString)
+    hexElem.attr({stroke: "none", fill: this.color, opacity: 1});
+    hexElem.hover(
         //Function for drawing the hex-dots on hover:
         function() {
             if (start_game && toggle_prob == 0)
@@ -90,6 +85,8 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
             if (start_game && toggle_prob == 0)
                 _this.freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 200);
         });
+    this.hexShape = paper.set();
+    this.hexShape.push(hexElem);
 
 
 
@@ -126,19 +123,19 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
 
         this.freqDots.attr({"stroke-opacity":1, "fill-opacity": 1});
     }
+}
 
-
-
-
-
-/*
-    ctx.beginPath();
-    ctx.fillStyle = hex.color;
-    ctx.moveTo(drawPoints[5][0], drawPoints[5][1]);
-    for (var i=0; i<6; i++)
-        ctx.lineTo(drawPoints[i][0], drawPoints[i][1]);
-    ctx.closePath();
-    ctx.fill();*/
+Hex.prototype.rolled = function(){
+    var _this = this;
+    this.hexShape.animate({"fill": _this.brighterColor}, 200, function(){
+        this.animate({"fill": _this.color}, 1200);
+    });
+    for (var i=0; i<this.verticies.length; i++){
+        var vertex = this.verticies[i];
+        if (vertex.owner != -1){
+            vertex.rolled(this.resourceType)
+        }
+    }
 }
 
 function getVerticiesOfHex(radius){
@@ -242,4 +239,71 @@ function triangularToCartesian(v_t, hexRadius){
     v_c[0] = v_t[0] * xt_xc + v_t[1] * yt_xc;
     v_c[1] = v_t[1] * yt_yc;
     return v_c;
+}
+
+function Robber(hex){
+    this.currentHex = hex;
+}
+
+Robber.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
+    var origin = this.currentHex.hexCenter;
+
+    this.currentHex.hexCenter;
+    var robberRadius = hexRadius * 0.6;
+
+    var hexCenter = this.currentHex.hexCenter;
+    var hexPoints = Hex.prototype.hexPoints;
+    var _this = this
+
+    //Draw the Hexagon
+    var drawHexRadius =  hexRadius - interHexDist / 2.0;
+    var drawPoints = [];
+
+    for (var i=0; i<6; i++){
+
+        var tempX = Math.round(hexPoints[i][0] * robberRadius + hexCenter[0]);
+        var tempY = Math.round(hexPoints[i][1] * robberRadius + hexCenter[1]);
+        drawPoints.push([tempX, tempY]);
+    }
+
+    var moveString = 'M';
+    for (var i=0; i<6; i++){
+        if (i != 0)
+            moveString += 'L';
+        moveString += drawPoints[i][0] + ' ' + drawPoints[i][1];
+    }
+
+    moveString += 'Z';
+    this.robberShape = paper.path(moveString);
+    this.robberShape.attr({stroke: "grey", "stroke-width":10, opacity: 0.9});
+
+    //functionality to move robber:
+
+    paper.setStart();
+    var hexList = board.hexList;
+    for (var i=0; i<hexList.length; i++)
+        hexList[i].hexShape.hover(
+        function(){
+            this.g = this.glow({color: "#FFF", width: 10});
+        },
+        // When the mouse goes away //
+        function(){
+            if (this.hasOwnProperty("g")){
+                this.g.remove()
+                delete this.g
+            }
+        }); 
+
+
+    this.hexChoosing = paper.setFinish();
+
+
+}
+
+Robber.prototype.rolled = function(){
+
+
+
+
+
 }

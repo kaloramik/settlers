@@ -75,6 +75,9 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
             var hex = new Hex(this.boardID[i], this.resourceList[i], this.rollList[i]);
             this.hexList.push(hex);
 
+            if (this.resourceList[i] == 0)
+                robbed_hex = hex;
+
             //add Edges and verticies to the Hex
             //edge keys are formatted:      'h{}_{}e{}'.format(hexID[0], hexID[1], edgeIndex)
             //vertex keys are formatted:    'h{}_{}v{}'.format(hexID[0], hexID[1], vertexIndex)
@@ -183,10 +186,9 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
             portEdge.adjVerticies[0].portType = portResource;
             portEdge.adjVerticies[1].portType = portResource;
         }
-
+        this.robber = new Robber(robbed_hex);
     }
     this.intializeBoard();
-
 }
 
 Board.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
@@ -202,11 +204,12 @@ Board.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         edgeList[i].draw(paper, hexRadius, interHexDist, originCoord);
     for (var i=0; i<vertexList.length; i++)
         vertexList[i].draw(paper, hexRadius, interHexDist, originCoord);
+    this.robber.draw(paper, hexRadius, interHexDist, originCoord);
     this.drawCurrentColorBox(paper);
 }
 
 Board.prototype.drawCurrentColorBox = function(paper) {
-    this.currPlayerColor = paper.rect(50,30,40,40).attr({"fill": colorSettlement(curr_player)})
+    this.currPlayerColor = paper.rect(50,30,40,40).attr({"fill": curr_player.color})
     this.diceRoll = paper.text(70,50, "").attr({"font-size": 24, "stroke": "white", "fill": "white"})
 };
 
@@ -241,19 +244,18 @@ function initalizeRaphael(width, height){
     return paper
 }
 
-num_players = 4
-turn_number = 0
-curr_player = 1
-start_game = false
-debug = true
+num_players = 4;
+turn_number = 0;
+start_game = false;
+debug = false;
 
-dice_list = []
-dice = 0
+dice_list = [];
+dice = 0;
 
 function rotateTurn(){
     turn_number++;
-    curr_player = turn_number % 4;
-    var color = colorSettlement(curr_player)
+    curr_player = player_list[turn_number % num_players];
+    var color = curr_player.color
     board.currPlayerColor.attr({"fill": color})
     board.diceRoll.attr({"text": ""})
     if (color == 'blue')
@@ -262,42 +264,29 @@ function rotateTurn(){
         board.diceRoll.attr({"fill": "black", "stroke": "black"})
 }
 
-function animateHex(hex){
-    hex.hexShape.animate({"fill": hex.brighterColor}, 200, function(){
-        hex.hexShape.animate({"fill": hex.color}, 400);
-    });
-}
 
-function animateVertex(vertex){
-    var anim = Raphael.animation({"fill": vertex.brighterColor}, 200, function(){
-        this.animate({"fill": vertex.color}, 400);
-    });
-    vertex.settle.animate(anim.delay(400))
-}
 function rollDie(){
     if (debug == false)
         dice = Math.floor(Math.random() * 6 + 1) + Math.floor(Math.random() * 6 + 1);
-    else
+    else{
         dice = dice + 1
         dice = dice % 12
+    }
     dice_list.push(dice)
     board.diceRoll.attr({"text": dice})
     var hexList = board.hexList;
     var vertexList = board.vertexList;
 
-    for (var i=0; i<hexList.length; i++){
-        var hex = hexList[i];
-        if (hex.rollNum == dice){
-            animateHex(hex);
-            for (var j=0; j<hex.verticies.length; j++){
-                var vertex = hex.verticies[j];
-                if (vertex.owner != -1){
-                    animateVertex(vertex);
-                }
+    if (dice == 7)
+        board.robber.rolled();
+    else{
+        for (var i=0; i<hexList.length; i++){
+            var hex = hexList[i];
+            if (hex.rollNum == dice){
+                hex.rolled();
             }
         }
     }
-
 }
 
 function startGame(){
@@ -327,21 +316,6 @@ function gameSetup(board, paper, hexRadius, interHexDist, originCoord){
     allowSettlements(board.vertexList, true)
 }
 
-function colorSettlement(playerNum){
-    if (playerNum == 0)          return 'red';
-    else if (playerNum == 1)     return 'blue';
-    else if (playerNum == 2)     return 'orange';
-    else if (playerNum == 3)     return 'white';
-}
-
-function colorSettlementAlternate(playerNum){
-    if (playerNum == 0)          return '#FF9999';
-    else if (playerNum == 1)     return '#66CCFF';
-    else if (playerNum == 2)     return '#FFFFCC';
-    else if (playerNum == 3)     return '#888888';
-}
-
-
 function init(){
     var boardID = [[0,0],[1,0],[2,0],[3,1],[4,2],[4,3],[4,4],[3,4],[2,4],[1,3],[0,2],[0,1],[1,1],[2,1],[3,2],[3,3],[2,3],[1,2],[2,2]]
     //  for original game:  
@@ -352,6 +326,11 @@ function init(){
     var portResourceList = [0,0,0,0,1,2,3,4,5]
 
     board = new Board(boardID, resourceList, rollList, portList, portResourceList);
+    player_list = [];
+    for (var i=0; i<num_players; i++){
+        player_list.push(new Player(i));
+    }
+    curr_player = player_list[0];
     paper = initalizeRaphael(1000, 800);
     board.draw(paper, 50, 8, [250,100]);
 //    gameSetup(board, paper, 50, 8, [250,100]);
@@ -360,4 +339,3 @@ function init(){
 window.onload = function(){
     init();
 }
-

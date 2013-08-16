@@ -77,18 +77,18 @@ Vertex.prototype.build = function(realBuild){
     if (this.buildingType == 0){
         if (start_game){
             for (var i=0; i<this.adjEdges.length; i++)
-                if (this.adjEdges[i].owner == curr_player)
+                if (this.adjEdges[i].owner == curr_player.ID)
                     allow = 1;
             }
-        else if (this.allowSettle[curr_player]){
+        else if (this.allowSettle[curr_player.ID]){
             allow = 1;
         }
     }
-    else if (this.buildingType == 1 && this.owner == curr_player)
+    else if (this.buildingType == 1 && this.owner == curr_player.ID)
         allow = 2;
     if (allow > 0 && realBuild){
         this.buildingType++
-        this.owner = curr_player
+        this.owner = curr_player.ID;
         for (var i=0; i<this.adjVerticies.length; i++)
             this.adjVerticies[i].buildingType = -1;
     }
@@ -98,6 +98,7 @@ Vertex.prototype.build = function(realBuild){
 Vertex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     var _this = this
     var vertexPt = _this.coord;
+    var bgColor = '#20232e';
 
     vertexPt[0] = Math.round(vertexPt[0] * hexRadius + originCoord[0]);
     vertexPt[1] = Math.round(vertexPt[1] * hexRadius + originCoord[1]);
@@ -106,7 +107,7 @@ Vertex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     this.settle.push(paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.8));
     // if (this.porttype != -1)
     //     this.settle.push(paper.text(vertexpt[0], vertexpt[1],'⚓'))
-    this.settle.attr({fill: 'black', opacity: 0});
+    this.settle.attr({fill: bgColor, stroke: bgColor, opacity: 0});
 
     var hoverer = this.settle.hover(
         // When the mouse comes over the object //
@@ -117,39 +118,58 @@ Vertex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         },
         // When the mouse goes away //
         function(){
-            var canBuild = _this.build(false)
-            if (canBuild > 0)
-                this.g.remove();
+            if (this.hasOwnProperty("g")){
+                this.g.remove()
+                delete this.g
+            }
         }); 
 
     this.settle.click(
         // When the mouse comes over the object //
         function(){
-
-            var canBuild = _this.build(true)
+            var canBuild = _this.build(true);
+            var bgColor = '#20232e';
             if (canBuild == 1){
-                _this.color = colorSettlement(curr_player);
-                _this.brighterColor = colorSettlementAlternate(curr_player);
+                _this.color = curr_player.color;
+                _this.brighterColor = curr_player.altColor;
                 this.animate({fill: _this.color, opacity: 1}, 200);
             }
             else if (canBuild == 2){
                 // hoverev.g.remove();
                 // _this.settle.unhover();
-                this.animate({fill: _this.color, opacity: 1, r: interHexDist * 1.2}, 200);
-                _this.settle.push(paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.3).attr({fill: 'black', opacity: 1}));
-
-                if (_this.ID[2] == 0){
-                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + vertexPt[0] + ' ' + (vertexPt[1] - interHexDist * 0.3) + 'z').attr({stroke: 'black', "stroke-opacity": 1}).toFront());
-                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] - Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] - interHexDist * 0.3 / 2.0) + 'z').attr({stroke: 'black', opacity: 50}).toFront());
-                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] + Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] - interHexDist * 0.3 / 2.0)).attr({stroke: 'black', opacity: 50}).toFront());
-                }
-                else{
-                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + vertexPt[0] + ',' + (vertexPt[1] + interHexDist * 0.3)).attr({stroke: 'black', opacity: 1}).toFront());
-                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] - Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] + interHexDist * 0.3 / 2.0)).attr({stroke: 'black', opacity: 1}).toFront());
-                    _this.settle.push(paper.path('M' + vertexPt[0] + ' ' + vertexPt[1] + 'L' + (vertexPt[0] + Math.sqrt(3) / 2.0 * interHexDist * 0.3) + ' ' + (vertexPt[1] + interHexDist * 0.3 / 2.0)).attr({stroke: 'black', opacity: 1}).toFront());
-                }
+                _this.buildCity(paper, interHexDist, vertexPt, bgColor);
             }
         });
+}
+
+Vertex.prototype.buildCity = function(paper, interHexDist, vertexPt, bgColor){
+    var _this = this;
+    this.settle.animate({fill: this.color, opacity: 1, r: interHexDist * 1.2}, 200, function(){
+        paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.3).attr({fill: bgColor, stroke: bgColor, opacity: 1});
+
+        if (_this.ID[2] == 0){
+            _this.settle.push(paper.path('M' + vertexPt[0] + ',' + vertexPt[1] + 'L' + vertexPt[0] + ',' + (vertexPt[1] + interHexDist * 1.2) + 'z').attr({fill: bgColor, stroke: bgColor, "stroke-width": 1.5, opacity: 1}));
+            _this.settle.push(paper.path('M' + vertexPt[0] + ',' + vertexPt[1] + 'L' + (vertexPt[0] - Math.sqrt(3) / 2.0 * interHexDist * 1.2) + ',' + (vertexPt[1] - interHexDist * 1.2 / 2.0) + 'z').attr({fill: bgColor, stroke: bgColor, "stroke-width": 1.5, opacity: 1}));
+            _this.settle.push(paper.path('M' + vertexPt[0] + ',' + vertexPt[1] + 'L' + (vertexPt[0] + Math.sqrt(3) / 2.0 * interHexDist * 1.2) + ',' + (vertexPt[1] - interHexDist * 1.2 / 2.0)).attr({fill: bgColor, stroke: bgColor, "stroke-width": 1.5, opacity: 1}));
+        }
+        else{
+            _this.settle.push(paper.path('M' + vertexPt[0] + ',' + vertexPt[1] + 'L' + vertexPt[0] + ',' + (vertexPt[1] - interHexDist * 1.2)).attr({fill: bgColor, stroke: bgColor, "stroke-width": 1.5, opacity: 1}));
+            _this.settle.push(paper.path('M' + vertexPt[0] + ',' + vertexPt[1] + 'L' + (vertexPt[0] - Math.sqrt(3) / 2.0 * interHexDist * 1.2) + ',' + (vertexPt[1] + interHexDist * 1.2 / 2.0)).attr({fill: bgColor, stroke: bgColor, "stroke-width": 1.5, opacity: 1}));
+            _this.settle.push(paper.path('M' + vertexPt[0] + ',' + vertexPt[1] + 'L' + (vertexPt[0] + Math.sqrt(3) / 2.0 * interHexDist * 1.2) + ',' + (vertexPt[1] + interHexDist * 1.2 / 2.0)).attr({fill: bgColor, stroke: bgColor, "stroke-width": 1.5, opacity: 1}));
+        }
+    });
+}
+
+Vertex.prototype.rolled = function(resource){
+    var _this = this;
+
+    player_list[this.owner].resourceList[resource] += this.buildingType;
+    console.log("player ", this.owner, " gained ", this.buildingType, " of resource ", resource)
+
+    var anim = Raphael.animation({"fill": _this.brighterColor}, 200, function(){
+        this.animate({"fill": _this.color}, 3000);
+    });
+    this.settle.animate(anim.delay(400));
 }
 
 function placeSettlement(board, paper, hexRadius, interHexDist, originCoord){
@@ -173,15 +193,6 @@ function allowSettlements(vertexList, gameSetup){
         vertex.settleClick = vertex.settle.click(building(vertex))
     }
 }
-
-function building(vertex){
-            vertex.buildingType = 1;
-            vertex.owner = 1;
-            vertex.color = colorSettlement(1);
-            vertex.settle.animate({fill: vertex.color, opacity: 1}, 200);
-            //disallowSettlements(vertexList);
-}
-
 
 function disallowSettlements(vertexList){
     for (var i=0; i<vertexList.length; i++){

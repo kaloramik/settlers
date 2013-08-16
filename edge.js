@@ -50,7 +50,6 @@ function Edge(edgeID){
     this.portType = -1;
     // if this Edge is a port, portOrientation = direction that the port faces
     this.portOrientation = -1
-    this.allowRoad = [false, false, false, false, false, false];
 
     this.initalizeEdge = function(){
         this.color = 'transparent';
@@ -76,25 +75,25 @@ Edge.prototype.build = function(realBuild) {
     var adjVert1 = this.adjVerticies[0];
     var adjVert2 = this.adjVerticies[1];
     var allow = 0
-    if (adjVert1.owner == curr_player || adjVert2.owner == curr_player){
+    if (adjVert1.owner == curr_player.ID || adjVert2.owner == curr_player.ID){
         allow = 1;
     };
     if (adjVert1.owner == -1){
         for (var i=0; i<adjVert1.adjEdges.length; i++){
-            if (adjVert1.adjEdges[i].owner == curr_player){
+            if (adjVert1.adjEdges[i].owner == curr_player.ID){
                 allow = 1;
             }
         };
     };
     if (adjVert2.owner == -1){
         for (var i=0; i<adjVert2.adjEdges.length; i++){
-            if (adjVert2.adjEdges[i].owner == curr_player){
+            if (adjVert2.adjEdges[i].owner == curr_player.ID){
                 allow = 1;
             }
         };
     };
     if (realBuild && allow == 1)
-        this.owner = curr_player
+        this.owner = curr_player.ID
     return allow
 };
 
@@ -159,7 +158,7 @@ Edge.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         function(){
             var canBuild = _this.build(true)
             if (canBuild == 1){
-                var turn_color = colorSettlement(curr_player)
+                var turn_color = curr_player.color;
                 this.animate({stroke: turn_color, opacity: 100}, 200);
             };
         });
