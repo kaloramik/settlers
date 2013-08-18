@@ -90,3 +90,12 @@ function colorSettlementAlternate(playerNum){
     else if (playerNum == 3)     return '#888888';
 }
 
+function printInventory(){
+    var resList = curr_player.resourceList;
+    console.log("Player: " + curr_player.ID + " (" +  curr_player.color + ")");
+    console.log("resources: wood wheat sheep brick ore");
+    console.log("            " + resList[0] + "     "  + resList[1] + "     " + resList[2] + "     " + resList[3] + "    " + resList[4] + " ");
+    console.log("owned ports: " + curr_player.ownedPorts);
+    console.log("dev cards: " + curr_player.devCards);
+}
+

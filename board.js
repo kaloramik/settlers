@@ -365,15 +365,6 @@ function devCard(){
 }
 
 
-function printInventory(){
-    var resList = curr_player.resourceList;
-    console.log("Player: " + curr_player.ID + " (" +  curr_player.color + ")");
-    console.log("resources: wood wheat sheep brick ore");
-    console.log("            " + resList[0] + "     "  + resList[1] + "     " + resList[2] + "     " + resList[3] + "    " + resList[4] + " ");
-    console.log(resList);
-    console.log("dev cards: " + curr_player.devCards);
-}
-
 function gameSetup(board, paper, hexRadius, interHexDist, originCoord){
     //placeSettlement(board, paper, hexRadius, interHexDist, originCoord)
     allowSettlements(board.vertexList, true)
@@ -386,7 +377,7 @@ function init(){
     var resourceList = [-1,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,4,4,4];
     var rollList = [5,2,6,3,8,10,9,12,11,4,8,10,9,4,5,6,3,11];
     var portList = [[-1,-1,1,4], [1,-1,2,5], [3,0,2,5], [4,2,0,0], [4,3,1,1], [3,4,1,1], [2,4,2,2], [0,3,0,3], [-1,1,0,3]];
-    var portResourceList = [0,0,0,0,1,2,3,4,5]
+    var portResourceList = [0,1,2,3,4,5,5,5,5]
 
     board = new Board(boardID, resourceList, rollList, portList, portResourceList);
     player_list = [];

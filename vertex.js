@@ -49,7 +49,7 @@ function Vertex(vertexID){
     this.adjVerticies = [];
     this.buildingType = 0;  //-1: invalid, 0: valid, x1: settlement, x2: city
     this.owner = -1;
-    this.portType = false;
+    this.portType = -1;
     this.active = true;
 //    this.startPoint = edgePoints[0];
 //    this.endPoint = edgePoints[1];
@@ -131,6 +131,10 @@ Vertex.prototype.buildSettlement = function(paper, interHexDist, vertexPt, bgCol
     curr_player.buildSettlement(true);
     this.owner = curr_player.ID;
     this.buildingType++;
+
+    if (this.portType != -1){
+        curr_player.ownedPorts[this.portType] = true;
+    }
 
     for (var i=0; i<this.adjVerticies.length; i++)
         this.adjVerticies[i].buildingType = -1;

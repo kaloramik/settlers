@@ -168,7 +168,7 @@ Edge.prototype.buildRoad = function(startPt, endPt, interHexDist){
 }
 
 Edge.prototype.drawPort = function(startPt, endPt, interHexDist){
-    if (this.portType == 0)
+    if (this.portType == 5)
         var color = 'black';
     else
         var color = resourceColor(this.portType);
