@@ -51,7 +51,6 @@ function Vertex(vertexID){
     this.owner = -1;
     this.portType = false;
     this.active = true;
-    this.allowSettle = [true, true, true, true, true, true];
 //    this.startPoint = edgePoints[0];
 //    this.endPoint = edgePoints[1];
 //
@@ -72,29 +71,6 @@ function Vertex(vertexID){
     this.initalizeVertex();
 }
 
-Vertex.prototype.build = function(realBuild){
-    var allow = 0;
-    if (this.buildingType == 0){
-        if (start_game){
-            for (var i=0; i<this.adjEdges.length; i++)
-                if (this.adjEdges[i].owner == curr_player.ID)
-                    allow = 1;
-            }
-        else if (this.allowSettle[curr_player.ID]){
-            allow = 1;
-        }
-    }
-    else if (this.buildingType == 1 && this.owner == curr_player.ID)
-        allow = 2;
-    if (allow > 0 && realBuild){
-        this.buildingType++
-        this.owner = curr_player.ID;
-        for (var i=0; i<this.adjVerticies.length; i++)
-            this.adjVerticies[i].buildingType = -1;
-    }
-    return allow
-}
-
 Vertex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     var _this = this
     var vertexPt = _this.coord;
@@ -105,46 +81,71 @@ Vertex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
 
     this.settle = paper.set();
     this.settle.push(paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.8));
-    // if (this.porttype != -1)
-    //     this.settle.push(paper.text(vertexpt[0], vertexpt[1],'⚓'))
     this.settle.attr({fill: bgColor, stroke: bgColor, opacity: 0});
 
-    var hoverer = this.settle.hover(
-        // When the mouse comes over the object //
-        function(){
-            var canBuild = _this.build(false)
-            if (canBuild > 0)
-                this.g = this.glow({color: "#FFF", width: 10});
-        },
-        // When the mouse goes away //
-        function(){
-            if (this.hasOwnProperty("g")){
-                this.g.remove()
-                delete this.g
-            }
-        }); 
+    this.hoverOnHandle = function(){
+        if (_this.canBuild() > 0)
+            this.g = this.glow({color: "#FFF", width: 10});
+    }
+    this.hoverOffHandle = function(){
+        if (this.hasOwnProperty("g")){
+            this.g.remove();
+            delete this.g;
+        }
+    }
+    this.clickHandle = function(){
+        var canBuild = _this.canBuild();
+        var bgColor = '#20232e';
+        if (canBuild == 1){
+            _this.buildSettlement(paper, interHexDist, vertexPt, bgColor);
+        }
+        else if (canBuild == 2){
+            _this.buildCity(paper, interHexDist, vertexPt, bgColor);
+        }
+    }
 
-    this.settle.click(
+    this.settle.hover(this.hoverOnHandle, this.hoverOffHandle);
+    this.settle.click(this.clickHandle);
         // When the mouse comes over the object //
-        function(){
-            var canBuild = _this.build(true);
-            var bgColor = '#20232e';
-            if (canBuild == 1){
-                _this.color = curr_player.color;
-                _this.brighterColor = curr_player.altColor;
-                this.animate({fill: _this.color, opacity: 1}, 200);
+}
+
+Vertex.prototype.canBuild = function(){
+    //returns whether a building can be built
+    if (this.buildingType == 0){
+        if (start_game){
+            for (var i=0; i<this.adjEdges.length; i++)
+                if (this.adjEdges[i].owner == curr_player.ID)
+                    if (curr_player.buildSettlement(false))
+                        return 1;
             }
-            else if (canBuild == 2){
-                // hoverev.g.remove();
-                // _this.settle.unhover();
-                _this.buildCity(paper, interHexDist, vertexPt, bgColor);
-            }
-        });
+        else
+            if (curr_player.buildSettlement(false))
+                return 1;
+    }
+    else if (this.buildingType == 1 && this.owner == curr_player.ID)
+        if (curr_player.buildCity(false))
+            return 2;
+}
+
+Vertex.prototype.buildSettlement = function(paper, interHexDist, vertexPt, bgColor){
+    curr_player.buildSettlement(true);
+    this.owner = curr_player.ID;
+    this.buildingType++;
+
+    for (var i=0; i<this.adjVerticies.length; i++)
+        this.adjVerticies[i].buildingType = -1;
+
+    this.color = curr_player.color;
+    this.brighterColor = curr_player.altColor;
+    this.settle.animate({fill: curr_player.color, opacity: 1}, 200);
 }
 
 Vertex.prototype.buildCity = function(paper, interHexDist, vertexPt, bgColor){
+    curr_player.buildCity(true);
+    this.buildingType++;
+
     var _this = this;
-    this.settle.animate({fill: this.color, opacity: 1, r: interHexDist * 1.2}, 200, function(){
+    this.settle.animate({r: interHexDist * 1.2}, 200, function(){
         paper.circle(vertexPt[0], vertexPt[1], interHexDist * 0.3).attr({fill: bgColor, stroke: bgColor, opacity: 1});
 
         if (_this.ID[2] == 0){

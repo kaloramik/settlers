@@ -79,7 +79,7 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         //Function for drawing the hex-dots on hover:
         function() {
             if (start_game && toggle_prob == 0)
-                _this.freqDots.animate({"stroke-opacity":1, "fill-opacity":0.7}, 200);
+                _this.freqDots.animate({"stroke-opacity":1, "fill-opacity":0.6}, 200);
         },
         function(){
             if (start_game && toggle_prob == 0)
@@ -87,9 +87,6 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         });
     this.hexShape = paper.set();
     this.hexShape.push(hexElem);
-
-
-
 
     //Draw the roll number
     if (this.rollNum != 0){
@@ -121,7 +118,7 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
             this.freqDots.push(tempDot);
         }
 
-        this.freqDots.attr({"stroke-opacity":1, "fill-opacity": 1});
+        this.freqDots.attr({"stroke-opacity":1, "fill-opacity": 0.6});
     }
 }
 
@@ -137,6 +134,44 @@ Hex.prototype.rolled = function(){
         }
     }
 }
+
+Hex.prototype.robPlayer = function(){
+    //while "waitForThief", turn off other handles on the adjVerts (ie dont let current player build.)
+    //once stolen, then turn these handles back on
+    var _this = this;
+    console.log('robber move!')
+    var waitForThief = false;
+    for (var i=0; i<this.verticies.length; i++){
+        var vertex = this.verticies[i];
+
+        if (vertex.owner != -1 && player_list[vertex.owner].numCards() > 0 && vertex.owner != curr_player.ID){
+            waitForThief = true;
+
+            //allow the adjacent settlements/cities to be clicked
+            vertex.onRobHoverOnHandle = function(){
+                this.g = this.glow({color: "#FFF", width: 10});
+            }
+            vertex.onRobClickHandle = function(){
+                console.log("robbed!");
+                var stolen_res = player_list[vertex.owner].steal();
+                curr_player.resourceList[stolen_res] += 1;
+                for (var j=0; j<_this.verticies.length; j++){
+                    var tempVert = _this.verticies[j];
+                    tempVert.settle.unclick(tempVert.onRobClickHandle);
+                    tempVert.settle.unhover(tempVert.onRobHoverOnHandle);
+                    board.allowDevelopment()
+                }
+            }
+            vertex.settle.click(vertex.onRobClickHandle)
+            vertex.settle.hover(vertex.onRobHoverOnHandle);
+        }
+    }
+    if (waitForThief == false){
+        //there was nobody to rob!
+        board.allowDevelopment()
+    }
+}
+
 
 function getVerticiesOfHex(radius){
     //radius:   length of the ------
@@ -178,31 +213,31 @@ function getVerticiesOfPent(radius){
 
 function resourceColor(resourceIndex){
     //converts the resource index to the corresponding color
-    if (resourceIndex == 0) return '#DEC2C2' //desert
-    else if (resourceIndex == 1) return '#277D09' //wood
-    else if (resourceIndex == 2) return '#E37E00' //wheat
-    else if (resourceIndex == 3) return '#CCFF99' //sheep
-    else if (resourceIndex == 4) return '#7B090B' //brick
-    else if (resourceIndex == 5) return '#6F6161' //ore
+    if (resourceIndex == -1) return '#DEC2C2' //desert
+    else if (resourceIndex == 0) return '#277D09' //wood
+    else if (resourceIndex == 1) return '#E37E00' //wheat
+    else if (resourceIndex == 2) return '#CCFF99' //sheep
+    else if (resourceIndex == 3) return '#7B090B' //brick
+    else if (resourceIndex == 4) return '#6F6161' //ore
 }
 
 function resourceColorAlternate(resourceIndex){
     //converts the resource index to the corresponding color
-    if (resourceIndex == 1) return '#33FF33' //wood
-    else if (resourceIndex == 2) return '#FFFF66' //wheat
-    else if (resourceIndex == 3) return '#FFFFFF' //sheep
-    else if (resourceIndex == 4) return '#FF3366' //brick
-    else if (resourceIndex == 5) return '#C8C8C8' //ore
+    if (resourceIndex == 0) return '#33FF33' //wood
+    else if (resourceIndex == 1) return '#FFFF66' //wheat
+    else if (resourceIndex == 2) return '#FFFFFF' //sheep
+    else if (resourceIndex == 3) return '#FF3366' //brick
+    else if (resourceIndex == 4) return '#C8C8C8' //ore
 }
 
 function numberColor(resourceIndex){
     //converts the resource index to the corresponding color
-    if (resourceIndex == 0) return '#FFFFFF' //desert
-    else if (resourceIndex == 1) return '#FFFFFF' //wood
-    else if (resourceIndex == 2) return '#321c00' //wheat
-    else if (resourceIndex == 3) return '#254b00' //sheep
-    else if (resourceIndex == 4) return '#fcd5d6' //brick
-    else if (resourceIndex == 5) return '#f2f0f0' //ore
+    if (resourceIndex == -1) return '#FFFFFF' //desert
+    else if (resourceIndex == 0) return '#FFFFFF' //wood
+    else if (resourceIndex == 1) return '#321c00' //wheat
+    else if (resourceIndex == 2) return '#254b00' //sheep
+    else if (resourceIndex == 3) return '#fcd5d6' //brick
+    else if (resourceIndex == 4) return '#f2f0f0' //ore
 }
 
 function triangularToCartesian(v_t, hexRadius){
@@ -241,15 +276,16 @@ function triangularToCartesian(v_t, hexRadius){
     return v_c;
 }
 
-function Robber(hex){
+function Thief(hex){
     this.currentHex = hex;
 }
 
-Robber.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
-    var origin = this.currentHex.hexCenter;
+Thief.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
+    this.origin = this.currentHex.hexCenter;
+    this.color = "grey";
 
     this.currentHex.hexCenter;
-    var robberRadius = hexRadius * 0.6;
+    var thiefRadius = hexRadius * 0.6;
 
     var hexCenter = this.currentHex.hexCenter;
     var hexPoints = Hex.prototype.hexPoints;
@@ -260,9 +296,8 @@ Robber.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     var drawPoints = [];
 
     for (var i=0; i<6; i++){
-
-        var tempX = Math.round(hexPoints[i][0] * robberRadius + hexCenter[0]);
-        var tempY = Math.round(hexPoints[i][1] * robberRadius + hexCenter[1]);
+        var tempX = Math.round(hexPoints[i][0] * thiefRadius + hexCenter[0]);
+        var tempY = Math.round(hexPoints[i][1] * thiefRadius + hexCenter[1]);
         drawPoints.push([tempX, tempY]);
     }
 
@@ -274,36 +309,86 @@ Robber.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     }
 
     moveString += 'Z';
-    this.robberShape = paper.path(moveString);
-    this.robberShape.attr({stroke: "grey", "stroke-width":10, opacity: 0.9});
+    this.thiefShape = paper.path(moveString);
+    this.thiefShape.attr({stroke: this.color, "stroke-width":10, opacity: 0.9});
 
-    //functionality to move robber:
-
+    //functionality to move Thief:
     paper.setStart();
-    var hexList = board.hexList;
-    for (var i=0; i<hexList.length; i++)
-        hexList[i].hexShape.hover(
-        function(){
-            this.g = this.glow({color: "#FFF", width: 10});
-        },
-        // When the mouse goes away //
-        function(){
-            if (this.hasOwnProperty("g")){
-                this.g.remove()
-                delete this.g
-            }
-        }); 
-
 
     this.hexChoosing = paper.setFinish();
-
-
 }
 
-Robber.prototype.rolled = function(){
+Thief.prototype.rolled = function(){
+    this.thiefShape.animate({"stroke": "black"}, 200, function(){
+        this.animate({"stroke": "grey"}, 500);
+    });
+    pause_roll = true;
+    board.preventDevelopment()
 
+    var hexList = board.hexList;
+    var _this = this;
+    //Changes the robbed tile. cannot choose current tile
+    for (var i=0; i<hexList.length; i++){
+        if (hexList[i] != this.currentHex){
+            this.allowChooseTile(hexList[i]);
+        }
+    }
+}
 
+Thief.prototype.allowChooseTile = function(hex){
+    //turns on the event handles to allow choosing a hex tile
+    var _this = this;
 
+    hex.hoverOnHandle = function(){
+        this.g = this.glow({color: "#FFF", width: 10});
+    }
+    hex.hoverOffHandle = function(){
+        if (this.hasOwnProperty("g")){
+            this.g.remove();
+            delete this.g;
+        }
+    }
+    hex.clickHandle = function(){
+        _this.changeTile(hex);
+    }
+    hex.hoverFcn = hex.hexShape.hover(hex.hoverOnHandle, hex.hoverOffHandle)
+    hex.clickFcn = hex.hexShape.click(hex.clickHandle);
+}
 
+Thief.prototype.flashy = function(){
+    this.thiefShape.animate({transform: "...r120"}, 600)
+}
 
+Thief.prototype.changeTile = function(hex){
+    //physically moves the Thief on the board
+    var hexList = board.hexList;
+
+    for (var i=0; i<hexList.length; i++){
+        if (hexList[i] != this.currentHex){
+            hexList[i].hexShape.unhover(hexList[i].hoverOnHandle);
+            hexList[i].clickFcn.unclick(hexList[i].clickHandle);
+        }
+        else
+            if (hex.hasOwnProperty("g")){
+                this.g.remove();
+                delete this.g;
+            }
+    }
+
+    var prevHex = this.currentHex;
+    var nextHex = hex;
+    // this.thiefShape.attr({stroke: "grey", "stroke-width":10, opacity: 0.9});
+    var x = nextHex.hexCenter[0] - prevHex.hexCenter[0];
+    var y = nextHex.hexCenter[1] - prevHex.hexCenter[1];
+    var pCenter = prevHex.center;
+    var nCenter = nextHex.center;
+    var dist = Math.sqrt(Math.pow(nCenter[0] - pCenter[0], 2) + Math.pow(nCenter[1] - pCenter[1], 2));
+    var numRot = Math.round(dist / 2 );
+
+    this.thiefShape.animate({transform: "...T" + x + "," + y + ',r' + (60 * numRot)}, dist * 150, function(){
+        hex.robPlayer() 
+    })
+    this.currentHex = hex;
+
+    pause_roll = false;
 }

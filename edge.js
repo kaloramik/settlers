@@ -69,33 +69,6 @@ function Edge(edgeID){
     this.initalizeEdge();
 };
 
-Edge.prototype.build = function(realBuild) {
-    if (this.owner != -1)
-        return 0;
-    var adjVert1 = this.adjVerticies[0];
-    var adjVert2 = this.adjVerticies[1];
-    var allow = 0
-    if (adjVert1.owner == curr_player.ID || adjVert2.owner == curr_player.ID){
-        allow = 1;
-    };
-    if (adjVert1.owner == -1){
-        for (var i=0; i<adjVert1.adjEdges.length; i++){
-            if (adjVert1.adjEdges[i].owner == curr_player.ID){
-                allow = 1;
-            }
-        };
-    };
-    if (adjVert2.owner == -1){
-        for (var i=0; i<adjVert2.adjEdges.length; i++){
-            if (adjVert2.adjEdges[i].owner == curr_player.ID){
-                allow = 1;
-            }
-        };
-    };
-    if (realBuild && allow == 1)
-        this.owner = curr_player.ID
-    return allow
-};
 
 Edge.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     var _this = this;
@@ -135,34 +108,64 @@ Edge.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         this.drawPort(startPt, endPt, interHexDist)
 
     //using Raphael - store the line in this.path
-    path = paper.path('M' + startPt[0] + ',' + startPt[1] + ',L' + endPt[0] + ',' + endPt[1]);
-    path.attr("stroke-width", String(roadWidth));
-    path.attr("stroke", 'black');
-    path.attr("opacity", 0);
-    path.hover(
-        // When the mouse comes over the object //
-        function(){
-            var canBuild = _this.build()
-            if (canBuild == 1)
-                this.g = this.glow({"color": "#FFF", width: 10});
-            else
-                this.g = paper.set()
-        },
-        // When the mouse goes away //
-        function(){
-            this.g.remove();
-        });
+    this.road = paper.path('M' + startPt[0] + ',' + startPt[1] + ',L' + endPt[0] + ',' + endPt[1]);
+    this.road.attr("stroke-width", String(roadWidth));
+    this.road.attr("stroke", 'black');
+    this.road.attr("opacity", 0);
 
-    path.click(
-        // When the mouse comes over the object //
-        function(){
-            var canBuild = _this.build(true)
-            if (canBuild == 1){
-                var turn_color = curr_player.color;
-                this.animate({stroke: turn_color, opacity: 100}, 200);
-            };
-        });
+    this.hoverOnHandle = function(){
+        var canBuild = _this.canBuild()
+        if (canBuild > 0)
+            this.g = this.glow({color: "#FFF", width: 10});
+    }
+    this.hoverOffHandle = function(){
+        if (this.hasOwnProperty("g")){
+            this.g.remove();
+            delete this.g;
+        }
+    }
+    this.clickHandle = function(){
+        if (_this.canBuild())
+            _this.buildRoad();
+    }
+    this.road.hover(this.hoverOnHandle, this.hoverOffHandle);
+    this.road.click(this.clickHandle);
 };
+
+Edge.prototype.canBuild = function() {
+    if (this.owner != -1)
+        return false;
+    var allow = false
+    var adjVert1 = this.adjVerticies[0];
+    var adjVert2 = this.adjVerticies[1];
+    if (adjVert1.owner == curr_player.ID || adjVert2.owner == curr_player.ID){
+        allow = true;
+    };
+    if (adjVert1.owner == -1){
+        for (var i=0; i<adjVert1.adjEdges.length; i++){
+            if (adjVert1.adjEdges[i].owner == curr_player.ID){
+                allow = true;
+            }
+        };
+    };
+    if (adjVert2.owner == -1){
+        for (var i=0; i<adjVert2.adjEdges.length; i++){
+            if (adjVert2.adjEdges[i].owner == curr_player.ID){
+                allow = true;
+            }
+        };
+    };
+    if (allow){
+        return curr_player.buildRoad(false);
+    }
+    return false
+};
+
+Edge.prototype.buildRoad = function(startPt, endPt, interHexDist){
+    curr_player.buildRoad(true);
+    this.owner = curr_player.ID;
+    this.road.animate({stroke: curr_player.color, opacity: 1}, 200);
+}
 
 Edge.prototype.drawPort = function(startPt, endPt, interHexDist){
     if (this.portType == 0)
@@ -178,11 +181,10 @@ Edge.prototype.drawPort = function(startPt, endPt, interHexDist){
     startPt = [startPt[0] + Math.round(portEndptsOffset[0]), startPt[1] + Math.round(portEndptsOffset[1])]
     endPt = [endPt[0] + Math.round(portEndptsOffset[0]), endPt[1] + Math.round(portEndptsOffset[1])]
     this.portShape = paper.path('M' + startPt[0] + ',' + startPt[1] + ',S' + middle[0] + ',' + middle[1] + ',' + endPt[0] + ',' + endPt[1]);
-    this.portShape.attr("stroke-width", String(interHexDist*1.2));
     this.portShape.attr("stroke-width", String(interHexDist*.2));
     //this.flag = paper.path("M19.562,10.75C21.74,8.572,25.5,7,25.5,7c-8,0-8-4-16-4v10c8,0,8,4,16,4C25.5,17,21.75,14,19.562,10.75zM6.5,29h2V3h-2V29z")
     //this.portShape.attr("stroke", 'black');
-    this.portShape.attr("fill", color);
+    this.portShape.attr({"fill": color, "stroke": "none"});
     //this.portShape.attr("opacity", 0.3);
 };
 
