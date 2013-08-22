@@ -1,0 +1,26 @@
+how to install:
+
+brew install node
+
+npm
+curl https://npmjs.org/install.sh | sh
+
+
+MongoDB
+-----------
+
+brew install mongodb
+
+start with mongod & ( probably a better way)
+connect to mongo instance with
+
+mongo
+
+To list tables
+show tables
+
+To list current entries
+
+db.gamerooms.find()
+
+
