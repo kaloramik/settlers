@@ -24,7 +24,7 @@ app.configure(function(){
   app.use(express.cookieParser('secret'));
   app.use(express.session({
     secret: 'secret',
-    store: sessionStore, 
+    store: sessionStore,
     cookie: {httpOnly: true},
     key: 'express.sid'}));
   app.set('port', process.env.PORT || 3000);
@@ -46,14 +46,20 @@ app.get("/favicon.ico", function (req, res) {
 });
 
 // redirect /game?id=<id> to /game/id
-// can change js in post to dynamically do this instead 
+// can change js in post to dynamically do this instead
 app.post("/game", function (req, res) {
   var gameID = req.body.gameID;
   res.redirect('/game/' + gameID);
 });
 
 app.get("/game/:gameID", function (req, res) {
-  res.render("game_room.jade", {gameID: req.params.gameID, sessionID: req.sessionID});
+  // TODO: should really change this to post...
+  // At this point, user info should be in the req.session hopefully...
+  res.render("game_room.jade",
+             {
+               gameID: req.params.gameID,
+               sessionID: req.sessionID
+             });
 });
 
 var server = http.createServer(app);
