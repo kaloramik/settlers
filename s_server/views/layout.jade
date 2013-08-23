@@ -1,9 +1,17 @@
-!!!
-script(type='text/javascript', src='/socket.io/socket.io.js');
-script(type='text/javascript', src="http://code.jquery.com/jquery-2.0.3.js");
+doctype 5
 html
   head
-    body
-      h1 My First Express App
-      h1 session ID is  #{sessionID}
-      block content 
+    script(type='text/javascript', src='/socket.io/socket.io.js');
+    script(type='text/javascript', src='http://code.jquery.com/jquery-2.0.3.js');
+    script(type='text/javascript', src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js");
+    link(rel='stylesheet', href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css")
+  body
+    div(class="navbar navbar-fixed-top navbar-inverse")
+      div(class="navbar-inner")
+        div(class="container")
+          a(class="brand", href="#") Project Morat
+          ul(class="nav")
+            li(class="active")
+              a(href="#") HOME
+      block content
+

@@ -19,29 +19,38 @@ $(document).ready(function() {
   });
 });
 
+function createSigninError(msg) {
+  var form = $('#enter_game_form');
+  $("#signinError").remove();
+  var alertDiv = $("<div>", {class: "alert alert-error", text: msg, id: "signinError"});
+  var alertDivDismiss = $("<a>", {"class": "close", "data-dismiss": "alert", "href": "#", "text": "x"});
+  alertDiv.append(alertDivDismiss);
+  form.prepend(alertDiv);
+}
+
 function createGame() {
-  var userName = $('#user_id').val();
+  var userName = $('#userName').val();
   if (!userName) {
-    $('#status').text('user name is null');
+    createSigninError('user name is empty');
     return;
   }
   var gameName = $('#gameName').val();
   if (!gameName) {
-    $('#status').text('game id is null');
+    createSigninError('game name is empty');
     return;
   }
   socket.emit('createGame', userName, gameName);
 }
 
 function joinGame() {
-  var userName = $('#user_id').val();
+  var userName = $('#userName').val();
   if (!userName) {
-    $('#status').text('user name is null');
+    createSigninError('user name is empty');
     return;
   }
   var gameName = $('#gameName').val();
   if (!gameName) {
-    $('#status').text('game name is null');
+    createSigninError('game name is empty');
     return;
   }
   socket.emit('joinGame',userName, gameName);

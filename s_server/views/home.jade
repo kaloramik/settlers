@@ -1,15 +1,14 @@
 extends layout
 block content
   script(type='text/javascript', src='/js/home.js');
-  h1 Settlersmack
-  h2 #{title}
-  div
-    div(id='status')
-    form(id='enter_game_form', action='game', method='post')
-      | Player Name: 
-      input(type='text', id='user_id', name='userID')) 
-      br
-      | Create/Join Game: 
-      input(type='text', id='gameName', name='gameName')) 
-      input(type='button', id='create_game', onclick='createGame()', value='Create Game')
-      input(type='button', id='join_game', onclick='joinGame()', value='Join Game')
+  div.row
+    div(class="span4 offset1")
+      div.well
+        legend Login
+        form(method='post', action = 'game', id='enter_game_form')
+          input(class="span3", placeholder="Username:", type='text', id='userName', name='userName'))
+          input(class="span3", placeholder="Game Name:", type='text', id='gameName', name='gameName'))
+          input(type='button', class='btn', id='create_game', onclick='createGame()', value='Create Game')
+          input(type='button', class='btn', id='join_game', onclick='joinGame()', value='Join Game')
+
+
