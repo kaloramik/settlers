@@ -17,6 +17,7 @@ function joiningRoom(gameID) {
       return;
     }
     gameRoom.playerList.push(userName);
+    gameRoom.playerObjList.push([2,4,4,2,0,0]);
     gameRoom.save();
     console.log("found the game!");
     // TODO: this kinda sucks, see if theres a better way, or pass in the io socket

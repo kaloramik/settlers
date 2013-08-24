@@ -18,6 +18,7 @@ db.once('open', function callback () {
 var socket;
 var sessionStore;
 
+
 var init = function(server, sessionStore) {
 
   socket = io.listen(server);
@@ -64,6 +65,7 @@ function onSocketConnection(client) {
   util.log("new player has connected" + client.handshake.sessionID);
   gameRoomSockets.addClientListeners(client);
 
+
   client.on('createGame', createGame);
   client.on('joinGame', joinGame);
 };
@@ -96,6 +98,7 @@ function joinGame(userName, gameName) {
   // save the userName for this session
   this.handshake.session.userName = userName;
   this.handshake.session.save();
+
   GameRoomHandler.checkRoom(gameName, function(err, gameRoom, canJoin) {
     var data = {};
     data.success = canJoin;

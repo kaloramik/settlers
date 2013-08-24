@@ -247,20 +247,6 @@ Board.prototype.allowDevelopment = function(){
     }
 }
 
-function fisherYates(myArray){
-    //randomizes the elements of the array
-    var i = myArray.length;
-    var j, tempi, tempj;
-    if (i==0) return false;
-    while (--i){
-        j = Math.floor(Math.random() * (i + 1));
-        tempi = myArray[i];
-        tempj = myArray[j];
-        myArray[i] = tempj;
-        myArray[j] = tempi;
-    }
-}
-
 function initalizeCanvas(width, height){
     //draws the map's current game state - including all road, settlement, thief placements.
     var boardElem = document.getElementById("board");
@@ -273,10 +259,6 @@ function initalizeCanvas(width, height){
     return ctx 
 }
 
-function initalizeRaphael(width, height){
-    paper = Raphael(100,0,1000,800);
-    return paper
-}
 
 num_players = 4;
 turn_number = 0;
@@ -336,6 +318,7 @@ function startGame(){
     for (var i=0; i<hexList.length; i++){
         hexList[i].freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 500);
     }
+    socket.emit('startGame', gameID)
 }
 
 toggle_prob = 0
@@ -364,10 +347,35 @@ function devCard(){
     }
 }
 
-
 function gameSetup(board, paper, hexRadius, interHexDist, originCoord){
     //placeSettlement(board, paper, hexRadius, interHexDist, originCoord)
     allowSettlements(board.vertexList, true)
+}
+
+function setupBoard(boardIDList, resourceList, portList, rollList, portResourceList){
+
+    board = new Board(boardID, resourceList, rollList, portList, portResourceList);
+
+    player_list = [];
+    for (var i=0; i<num_players; i++){
+        player_list.push(new Player(i));
+    }
+
+    curr_player = player_list[0];
+    var gameboardDiv = $("#gameboard")[0];
+    paper = Raphael(gameboardDiv, 1000, 800);
+    paper.canvas.style.backgroundColor = '#6f799b';
+    // $("changeTurn").click(rotateTurn());
+    $("#rollDie").click(function(){rollDie();});
+    $("#changeTurn").click(function(){rotateTurn()});
+    $("#startGame").click(function(){startGame()});
+    $("#showProb").click(function(){showProb()});
+    $("#devCard").click(function(){devCard()});
+    $("#printInv").click(function(){printInventory()});
+
+
+    board.draw(paper, 50, 8, [250,100]);
+//    gameSetup(board, paper, 50, 8, [250,100]);
 }
 
 function init(){
@@ -375,21 +383,16 @@ function init(){
     //  for original game:  
     //4 wood //4 wheat //4 sheep //3 brick //3 ore //1 desert
     var resourceList = [-1,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,4,4,4];
-    var rollList = [5,2,6,3,8,10,9,12,11,4,8,10,9,4,5,6,3,11];
     var portList = [[-1,-1,1,4], [1,-1,2,5], [3,0,2,5], [4,2,0,0], [4,3,1,1], [3,4,1,1], [2,4,2,2], [0,3,0,3], [-1,1,0,3]];
+    var rollList = [5,2,6,3,8,10,9,12,11,4,8,10,9,4,5,6,3,11];
     var portResourceList = [0,1,2,3,4,5,5,5,5]
-
-    board = new Board(boardID, resourceList, rollList, portList, portResourceList);
-    player_list = [];
-    for (var i=0; i<num_players; i++){
-        player_list.push(new Player(i));
-    }
-    curr_player = player_list[0];
-    paper = initalizeRaphael(1000, 800);
-    board.draw(paper, 50, 8, [250,100]);
-//    gameSetup(board, paper, 50, 8, [250,100]);
+    setupBoard(boardID, resourceList, portList, rollList, portResourceList);
 }
 
-window.onload = function(){
-    init();
+function updateBoard(){
+
 }
+
+// $(document).ready(function(){
+//     init();
+// });

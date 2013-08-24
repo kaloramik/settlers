@@ -5,8 +5,28 @@ var mongoose = require('mongoose'),
 var gameRoomSchema = new Schema({
   gameName : { type: String, required: true},
   playerList: [String],
-  currentTurn: String,
-  state: String
+
+  //********************************************
+  // Next 5 lists are used to initalize the board
+  boardID: [],
+  resourceList: [],
+  portList: [],
+  rollList: [],
+  portResourceList: [],
+  //********************************************
+
+
+  //********************************************
+  // these lists determine the game state
+  currentTurn: Number,  //positive integer
+  state: String,     //setup, play, pause
+  robber: Number,       //hexID
+  playerObjList: [], //list of players and their current resources/devCards
+  vertexList: {},    //dict of {vertexID: ((10 if settle, 20 if city) + playerID)}
+  edgeList: {}       //dict of {edgeID: playerID}
+  //********************************************
+
+
   // player list ? num players?
   // current Turn
   // state => unstarted, prestart,
