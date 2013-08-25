@@ -7,18 +7,18 @@ $(document).ready(function() {
   });
 
   socket.on('updateChat', function (message) {
-      $("#conversation").append('<b>' + message + '</b> <br>' );
+      $("#chat-list").append('<li>' + message + '</li>' );
   });
 
   socket.on('updateUserList', function (data) {
-    $("#users").empty();
+    $("#user-list").empty();
     for (var i = 0; i < data.length; i++) {
-      $("#users").append('<b>' + data[i] + '</b> <br>' );
+      $("#user-list").append('<li>' + data[i] + '</li>' );
     }
   });
 
-  $("#chatButton").on('click', function() {
-    var message = $("#chatText").val();
+  $("#chat-button").on('click', function() {
+    var message = $("#chat-text").val();
     if (message != null && message.length > 0) {
       socket.emit('sendChat', gameID, message);
     }

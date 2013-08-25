@@ -3,7 +3,7 @@ $(document).ready(function() {
   socket = io.connect('http://localhost:3000');
   socket.on('handleGameRequest', function(data) {
     if (data.success == false) {
-      $('#status').text(data.message);
+      createSigninError(data.message);
       return;
     }
 

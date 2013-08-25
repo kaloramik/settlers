@@ -1,17 +1,16 @@
 doctype 5
-html
+html(style="height:100%")
   head
     script(type='text/javascript', src='/socket.io/socket.io.js');
     script(type='text/javascript', src='http://code.jquery.com/jquery-2.0.3.js');
     script(type='text/javascript', src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js");
     link(rel='stylesheet', href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css")
-  body
+  body(style="padding-top: 60px; padding-bottom:40px; height:100%")
     div(class="navbar navbar-fixed-top navbar-inverse")
       div(class="navbar-inner")
-        div(class="container")
           a(class="brand", href="#") Project Morat
           ul(class="nav")
             li(class="active")
               a(href="#") HOME
-      block content
+    block content
 
