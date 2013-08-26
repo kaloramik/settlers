@@ -67,10 +67,46 @@ block content
           input(id="chat-text", style="width:90%;")
           input(type='button', id='chat-button', value='send')
 
-      div(class="span3", id="chat-window")
+      div(class="span3", id="right-side-bar")
         div(class="well", id="chat-well")
           legend Chatlog
           ul(id="chat-list")
             li(id="test-chat") chat window
         div(class="well", id="trade-window")
           legend Trade Window
+          div(class="row-fluid")
+            div(class="span1")
+              div(class="well", id="wood-give", style="background-color:#277D09; color:#FFFFFF") 0
+            div(class="span1")
+            div(class="span1")
+              div(class="well", id="brick-give", style="background-color:#7B090B; color:#FFFFFF") 0
+            div(class="span4")
+            div(class="span1")
+              div(class="well", id="wood-for", style="background-color:#277D09; color:#FFFFFF") 0
+            div(class="span1")
+            div(class="span1")
+              div(class="well", id="brick-for", style="background-color:#7B090B; color:#FFFFFF") 0
+          div(class="row-fluid")
+            div(class="span1")
+              div(class="well", id="sheep-give", style="background-color:#CCFF99") 0
+            div(class="span1")
+            div(class="span1")
+              div(class="well", id="wheat-give", style="background-color:#E37E00; color:#FFFFFF") 0
+            div(class="span4")
+              img(src="/images/right_arrow.png", style="margin-left:25%")
+            div(class="span1")
+              div(class="well", id="sheep-for", style="background-color:#CCFF99") 0
+            div(class="span1")
+            div(class="span1")
+              div(class="well", id="wheat-for", style="background-color:#E37E00; color:#FFFFFF") 0
+          div(class="row-fluid")
+            div(class="span1")
+              div(class="well", id="ore-give", style="background-color:#6F6161; color:#FFFFFF") 0
+            div(class="span6")
+            div(class="span1")
+              div(class="well", id="ore-for", style="background-color:#6F6161; color:#FFFFFF") 0
+          div(class="row-fluid")
+            input(class="btn", type="button", id="trade-propse", value="Propose Trade")
+            input(class="btn", type="button", id="trade-bank", value="Bank it")
+
+
