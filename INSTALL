@@ -23,4 +23,8 @@ To list current entries
 
 db.gamerooms.find()
 
+------
+install app
+
+npm install
 
