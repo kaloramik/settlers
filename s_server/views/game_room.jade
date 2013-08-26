@@ -24,24 +24,45 @@ block content
                 li(id="part1") parts
       div(class="span7", id="game-container")
         div(class="row-fluid")
-          div(class="well", id="game-well", style="height:600px")
-          div(class="well", id="game-actions", style="float:right; margin-top:-190px; width:200px; height:130px;")
+          div(class="well", id="game-well", style="position:relative;height:600px; z-index:1")
+          div(class="well", id="game-actions", style="position:relative;float:right; margin-top:-190px; width:200px; height:130px; z-index:1000")
             input(class="btn", type="button", id="btn-roll", value="Roll")
             input(class="btn", type="button", id="btn-start", value="Start Game")
             br
             br
-            input(class="btn", type="button", id="btn-end", value="End Turn")
+            input(class="btn", type='button', id="btn-end", value="End Turn")
             input(class="btn", type="button", id="btn-prob", value="Toggle Prob")
             br
             br
             input(class="btn", type="button", id="btn-buy-dev", value="Buy Dev Card")
         div(class="row-fluid")
-          div(class="well", style="height:120px")
+          div(class="well", style="height:175px")
             legend Cards
             div(class="span1")
-              div(class="well")
+              div(class="well", id="wood-well", style="background-color:#277D09; color:#FFFFFF") 0
             div(class="span1")
-              div(class="well")
+              div(class="well", id="brick-well", style="background-color:#7B090B; color:#FFFFFF") 0
+            div(class="span1")
+              div(class="well", id="sheep-well", style="background-color:#CCFF99") 0
+            div(class="span1")
+              div(class="well", id="wheat-well", style="background-color:#E37E00; color:#FFFFFF") 0
+            div(class="span1")
+              div(class="well", id="ore-well", style="background-color:#6F6161; color:#FFFFFF") 0
+            div(class="span1")
+              input(class="btn", type='button', id='knight-button', value="Knight")
+              div(id="knight-quantity") 0 
+              input(class="btn", type='button', id='yp-button', value="Year Of Plenty")
+              div(id="yp-quantity") 0 
+            div(class="span1")
+            div(class="span1")
+              input(class="btn", type='button', id='rb-button', value="Road Building")
+              div(id="rb-quantity") 0 
+              input(class="btn", type='button', id='rb-button', value="Monopoly")
+              div(id="monopoly-quantity") 0 
+            div(class="span1")
+            div(class="span1")
+              input(class="btn", type='button', id='vp-button', value="Victory Points")
+              div(id="vp-quantity", style="text-align:center") 0 
         div(class="row-fluid")
           input(id="chat-text", style="width:90%;")
           input(type='button', id='chat-button', value='send')
