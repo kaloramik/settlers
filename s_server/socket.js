@@ -101,13 +101,13 @@ function _joinGame(userName, gameName) {
   this.handshake.session.userName = userName;
   this.handshake.session.save();
 
-  GameRoomHandler.checkRoom(gameName, function(err, gameRoom, canJoin) {
+  GameRoomHandler.checkRoom(gameName, function(err, gameRoom, canJoin){
     var data = {};
     data.success = canJoin;
     data.message = err;
     data.userName = userName;
     data.join = false;
-    if (gameRoom) {
+    if (gameRoom){
       data.gameID = gameRoom._id;
       data.join = true;
     }

@@ -145,7 +145,7 @@ Hex.prototype.robPlayer = function(){
     for (var i=0; i<this.verticies.length; i++){
         var vertex = this.verticies[i];
 
-        if (vertex.owner != -1 && turn.playerList[vertex.owner].numCards() > 0 && vertex.owner != board.turn.currentPlayer.ID){
+        if (vertex.owner != -1 && turn.playerList[vertex.owner].numCards() > 0 && vertex.owner != turn.currentPlayer.ID){
             waitForThief = true;
 
             //allow the adjacent settlements/cturn to be clicked
@@ -155,7 +155,7 @@ Hex.prototype.robPlayer = function(){
             vertex.onRobClickHandle = function(){
                 console.log("robbed!");
                 var stolen_res = turn.playerList[vertex.owner].steal();
-                board.turn.currentPlayer.resourceList[stolen_res] += 1;
+                turn.currentPlayer.resourceList[stolen_res] += 1;
                 for (var j=0; j<_this.verticies.length; j++){
                     var tempVert = _this.verticies[j];
                     tempVert.settle.unclick(tempVert.onRobClickHandle);

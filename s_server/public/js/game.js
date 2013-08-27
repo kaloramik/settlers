@@ -50,7 +50,7 @@ $(document).ready(function() {
 });
 
 function setupGame(data){
-  setupBoard(data.boardID, data.resourceList, data.portList, data.rollList, data.portResourceList, data.userName);
+  setupBoard(data.boardID, data.resourceList, data.portList, data.rollList, data.portResourceList, data.devCardList, data.userName);
 }
 
 function transmitBoardUpdate(data){
@@ -66,6 +66,9 @@ function receiveBoardUpdate(data){
   else if (data.type == "turn"){
     console.log("go to next turn")
     turn.nextTurn(true);
+  }
+  else if (data.type == "devCard"){
+    board.devCardList.pop();
   }
   else if (data.type == "vertex"){
     var vertexKey = 'h' + data.id[0] + '_' + data.id[1] + 'v' + data.id[2];

@@ -13,6 +13,7 @@ var gameRoomSchema = new Schema({
   portList: [],
   rollList: [],
   portResourceList: [],
+  devCardList: [],
   //********************************************
 
 

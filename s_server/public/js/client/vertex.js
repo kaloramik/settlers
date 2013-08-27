@@ -100,17 +100,17 @@ Vertex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         if (turn.startGame){
             var canBuild = _this.canBuild();
             if (canBuild == 1){
-                _this.buildSettlement(board.turn.currentPlayer, false);
+                _this.buildSettlement(turn.currentPlayer, false);
             }
             else if (canBuild == 2){
-                _this.buildCity(board.turn.currentPlayer, false);
+                _this.buildCity(turn.currentPlayer, false);
             }
             if (canBuild > 0){
             //transmit the updates if a building has been built        
                 var data = {
                     "type": "vertex",
                     "id": _this.ID,
-                    "owner": board.turn.currentPlayer.ID,
+                    "owner": turn.currentPlayer.ID,
                     "buildingType": _this.buildingType,
                     "portType": _this.portType};
                 transmitBoardUpdate(data);
@@ -137,7 +137,7 @@ Vertex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
 
 Vertex.prototype.canBuild = function(){
     //returns whether a building can be built
-    var currentPlayer = board.turn.currentPlayer;
+    var currentPlayer = turn.currentPlayer;
     if (this.buildingType == 0){
         if (turn.num > 0){
             for (var i=0; i<this.adjEdges.length; i++)
@@ -211,6 +211,7 @@ Vertex.prototype.rolled = function(resource){
     var _this = this;
 
     turn.playerList[this.owner].resourceList[resource] += this.buildingType;
+    turn.player.updateResources();
     console.log("player ", this.owner, " gained ", this.buildingType, " of resource ", resource)
 
     var anim = Raphael.animation({"fill": _this.brighterColor}, 200, function(){

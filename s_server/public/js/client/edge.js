@@ -124,11 +124,11 @@ Edge.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     }
     this.clickHandle = function(){
         if (turn.startGame && _this.canBuild()){
-            _this.buildRoad(board.turn.currentPlayer, false);
+            _this.buildRoad(turn.currentPlayer, false);
             var data = {
                 "type": "edge",
                 "id": _this.ID,
-                "owner": board.turn.currentPlayer.ID,
+                "owner": turn.currentPlayer.ID,
             }
             transmitBoardUpdate(data);
         }
@@ -149,7 +149,7 @@ Edge.prototype.disallowBuild = function() {
 };
 
 Edge.prototype.canBuild = function() {
-    var currentPlayer = board.turn.currentPlayer;
+    var currentPlayer = turn.currentPlayer;
     if (this.owner != -1)
         return false;
     var allow = false

@@ -9,7 +9,7 @@ var mongoose = require('mongoose'),
 // attempts to create a game room. if one already exists,
 // use that one. callback takes (error, createdGameRoom)
 
-function initializeGameBoard(debug){
+function initializeGameBoard(){
 
   var boardID = [[0,0],[1,0],[2,0],[3,1],[4,2],[4,3],[4,4],[3,4],[2,4],[1,3],[0,2],[0,1],[1,1],[2,1],[3,2],[3,3],[2,3],[1,2],[2,2]]
   //  for original game:  
@@ -18,14 +18,20 @@ function initializeGameBoard(debug){
   var portList = [[-1,-1,1,4], [1,-1,2,5], [3,0,2,5], [4,2,0,0], [4,3,1,1], [3,4,1,1], [2,4,2,2], [0,3,0,3], [-1,1,0,3]];
 
   var rollList = [5,2,6,3,8,10,9,12,11,4,8,10,9,4,5,6,3,11];
-  var portResourceList = [0,1,2,3,4,5,5,5,5]
+  var portResourceList = [0,1,2,3,4,5,5,5,5];
+  var devCardList = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,2,2,3,3,4,4];
+  // 14 knights
+  // 5 vic
+  // 2 monopoly
+  // 2 road
+  // 2 year of plenty
 
-  
   // if (!debug){
     //randomizes the elements in array
   self.fisherYates(resourceList);
   self.fisherYates(portResourceList);
-  return [boardID, resourceList, portList, rollList, portResourceList];
+  self.fisherYates(devCardList);
+  return [boardID, resourceList, portList, rollList, portResourceList, devCardList];
 }
 
 self.fisherYates = function(myArray){
@@ -49,7 +55,7 @@ self.createGameRoom = function(gameName, callback) {
 
       //************ CREATE THE GAME ****************
       // initialize the game board here (randomize stuff)
-      var boardData = initializeGameBoard(false);
+      var boardData = initializeGameBoard();
       gameRoom = new GameRoom(
         {
           gameName: gameName,
@@ -59,6 +65,7 @@ self.createGameRoom = function(gameName, callback) {
           portList: boardData[2],
           rollList: boardData[3],
           portResourceList: boardData[4],
+          devCardList: boardData[5],
           currentTurn: 0,
           state: "waiting",
           robber: 0,

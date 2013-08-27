@@ -1,7 +1,7 @@
 //Board class
 //
 
-function Board(boardID, resourceList, rollList, portList, portResourceList){
+function Board(boardID, resourceList, rollList, portList, portResourceList, devCardList){
     //
     //        _0__1__2__3__4__ x            _0__1__2__3__4__ x
     //      0 /__/__/__/__/__/           0 /00/10/20/__/__/
@@ -24,6 +24,7 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
     this.rollList = rollList;
     this.portList = portList;
     this.portResourceList = portResourceList;
+    this.devCardList = devCardList;
     this.turn = new Turn();
     
 
@@ -317,16 +318,12 @@ function showProb(){
 
 function devCard(){
     if (turn.playersTurn){
-        var resourceList = turn.currentPlayer.resourceList;
-        resourceList[1] -= 1;
-        resourceList[2] -= 1;
-        resourceList[4] -= 1;
-        turn.currentPlayer.devCards += 1;
+        turn.player.buyDev()
     }
 }
 
-function setupBoard(boardIDList, resourceList, portList, rollList, portResourceList, playerName){
-    board = new Board(boardIDList, resourceList, rollList, portList, portResourceList);
+function setupBoard(boardIDList, resourceList, portList, rollList, portResourceList, devCardList, playerName){
+    board = new Board(boardIDList, resourceList, rollList, portList, portResourceList, devCardList);
     turn = board.turn;
     turn.playerName = playerName;
     console.log('player name is: ' + turn.playerName);

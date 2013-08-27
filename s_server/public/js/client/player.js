@@ -14,10 +14,13 @@ function Player(playerID){
     this.ownedPorts = [false,false,false,false,false,false]
     this.color = colorSettlement(this.ID);
     this.altColor = colorSettlementAlternate(this.ID);
-    this.devCards = 0;
+
+    // knights, victory, monopoly, road, plenty
+    this.devCards = [0,0,0,0,0];
     this.mustBuildRoad = 0;
     this.mustBuildSettle = 0;
     this.initialSettlement;
+    this.victoryPoints = 0;
 }
 
 Player.prototype.buildRoad = function(build){
@@ -28,8 +31,9 @@ Player.prototype.buildRoad = function(build){
     }
     if (this.resourceList[0] > 0 && this.resourceList[3] > 0){
         if (build){
-            board.turn.currentPlayer.resourceList[0] -= 1;
-            board.turn.currentPlayer.resourceList[3] -= 1;
+            turn.currentPlayer.resourceList[0] -= 1;
+            turn.currentPlayer.resourceList[3] -= 1;
+            this.updateResources();
         }
         return true;
     }
@@ -38,16 +42,20 @@ Player.prototype.buildRoad = function(build){
 
 Player.prototype.buildSettlement = function(build){
     if (this.mustBuildSettle > 0){
-        if (build)
+        if (build){
             this.mustBuildSettle--;
+            this.victoryPoints++;
+        }
         return true;        //build a free settle!
     }
     if (this.resourceList[0] > 0 && this.resourceList[1] > 0 && this.resourceList[2] > 0 && this.resourceList[3] > 0){
         if (build){
-            board.turn.currentPlayer.resourceList[0] -= 1;
-            board.turn.currentPlayer.resourceList[1] -= 1;
-            board.turn.currentPlayer.resourceList[2] -= 1;
-            board.turn.currentPlayer.resourceList[3] -= 1;
+            turn.currentPlayer.resourceList[0] -= 1;
+            turn.currentPlayer.resourceList[1] -= 1;
+            turn.currentPlayer.resourceList[2] -= 1;
+            turn.currentPlayer.resourceList[3] -= 1;
+            this.updateResources();
+            this.victoryPoints++;
         }
         return true;
     }
@@ -60,10 +68,60 @@ Player.prototype.buildCity = function(build){
             board.turn.currentPlayer.resourceList[1] -= 1;
             board.turn.currentPlayer.resourceList[2] -= 1;
             board.turn.currentPlayer.resourceList[4] -= 1;
+            this.updateResources();
+            this.victoryPoints++;
         }
         return true;
     }
     return false;
+}
+
+Player.prototype.buyDev = function(){
+    if (this.resourceList[1] > 0 && this.resourceList[2] > 0 && this.resourceList[4] > 0){
+        board.turn.currentPlayer.resourceList[1] -= 1;
+        board.turn.currentPlayer.resourceList[2] -= 1;
+        board.turn.currentPlayer.resourceList[4] -= 1;
+        this.updateResources();
+        var card = board.devCardList.pop()
+        this.devCards[card]++;
+        console.log("Drew dev card: " + card);
+        this.updateDevCards();
+        var data = {
+            "type": "devCard",
+            "owner": turn.currentPlayer.ID,
+            "devCards": turn.currentPlayer.devCards
+        }
+        console.log("submitting: " + data);
+        transmitBoardUpdate(data);
+    }
+    else
+        console.log("not enough resources to buy a development card!")
+}
+
+Player.prototype.updateResources = function(){
+    if (turn.player == turn.currentPlayer){
+        $("#wood-well").text(turn.currentPlayer.resourceList[0]);
+        $("#wheat-well").text(turn.currentPlayer.resourceList[1]);
+        $("#sheep-well").text(turn.currentPlayer.resourceList[2]);
+        $("#brick-well").text(turn.currentPlayer.resourceList[3]);
+        $("#ore-well").text(turn.currentPlayer.resourceList[4]);
+        var data = {
+            "type": "resources",
+            "owner": turn.player.ID,
+            "resourceList": turn.currentPlayer.resourceList
+        }
+        transmitBoardUpdate(data);
+    }
+}
+
+Player.prototype.updateDevCards = function(){
+    if (turn.player == turn.currentPlayer){
+        $("#knight-quantity").text(turn.currentPlayer.devCards[0]);
+        $("#vp-quantity").text(turn.currentPlayer.devCards[1]);
+        $("#monopoly-quantity").text(turn.currentPlayer.devCards[2]);
+        $("#rb-quantity").text(turn.currentPlayer.devCards[3]);
+        $("#yp-quantity").text(turn.currentPlayer.devCards[4]);
+    }
 }
 
 Player.prototype.steal = function(){

@@ -23,7 +23,7 @@ function joiningRoom(gameID) {
     gameRoom.playerObjList.push({
       "resourceList": [0,0,0,0,0],
       "portList":[0,0,0,0,0,0],
-      "devCards": 0,
+      "devCards": [0,0,0,0,0],
       "ownedVertices": [],
       "ownedEdges": [],
       "name": userName});
@@ -41,7 +41,8 @@ function joiningRoom(gameID) {
       "resourceList": gameRoom.resourceList,
       "portList": gameRoom.portList,
       "rollList": gameRoom.rollList,
-      "portResourceList": gameRoom.portResourceList
+      "portResourceList": gameRoom.portResourceList,
+      "devCardList": gameRoom.devCardList,
     };
 
     console.log(data.userName)
@@ -52,7 +53,11 @@ function joiningRoom(gameID) {
 function updateBoard(gameID, data){
   var _this = this;
   GameRoomHandler.updateRoom(gameID, function(err, gameRoom){
-    if (data.type == "turn"){
+    if (data.type == "resources"){
+      var player = gameRoom.playerObjList[data.owner];
+      player.resourceList = data.resourceList;
+    }
+    else if (data.type == "turn"){
       gameRoom.currentTurn = data.turn;
     }
     else if (data.type == "vertex"){
@@ -71,6 +76,11 @@ function updateBoard(gameID, data){
     else if (data.type == "edge"){
       var player = gameRoom.playerObjList[data.owner];
       player.ownedEdges.push(data.id)
+    }
+    else if (data.type == "devCard"){
+      var player = gameRoom.playerObjList[data.owner];
+      var card = gameRoom.devCardList.pop();
+      player.devCards[card]++;
     }
     else if (data.type == "start"){
       GameRoomHandler.fisherYates(gameRoom.playerObjList);
