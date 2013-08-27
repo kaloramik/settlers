@@ -7,7 +7,7 @@ var gameRoomSchema = new Schema({
   playerList: [String],
 
   //********************************************
-  // Next 5 lists are used to initalize the board
+  // Next 5 lists are used to initialize the board
   boardID: [],
   resourceList: [],
   portList: [],
@@ -22,8 +22,6 @@ var gameRoomSchema = new Schema({
   state: String,     //setup, play, pause
   robber: Number,       //hexID
   playerObjList: [], //list of players and their current resources/devCards
-  vertexList: {},    //dict of {vertexID: ((10 if settle, 20 if city) + playerID)}
-  edgeList: {}       //dict of {edgeID: playerID}
   //********************************************
 
 

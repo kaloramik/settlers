@@ -1,6 +1,8 @@
 var socket;
 $(document).ready(function() {
   socket = io.connect('http://localhost:3000');
+
+
   socket.on('handleGameRequest', function(data) {
     if (data.success == false) {
       createSigninError(data.message);
@@ -35,14 +37,16 @@ function createGame() {
     return;
   }
   var gameName = $('#gameName').val();
+
   if (!gameName) {
     createSigninError('game name is empty');
     return;
   }
+
   socket.emit('createGame', userName, gameName);
 }
 
-function joinGame() {
+function joinGame(){
   var userName = $('#userName').val();
   if (!userName) {
     createSigninError('user name is empty');

@@ -8,7 +8,8 @@ var express = require('express')
   , MemoryStore = require('express').session.MemoryStore
   , sessionStore = new MemoryStore()
   , winston = require('winston')
-  , mainPage = require('./routes/mainPage');
+  , mainPage = require('./routes/mainPage')
+  , GameRoomHandler = require('./libs/GameRoomHandler')
 
 var app = express();
 
@@ -46,20 +47,29 @@ app.get("/favicon.ico", function (req, res) {
 });
 
 // redirect /game?id=<id> to /game/id
+
+
+
 // can change js in post to dynamically do this instead
 app.post("/game", function (req, res) {
   var gameID = req.body.gameID;
-  res.redirect('/game/' + gameID);
+  var gameName = req.body.gameName;
+  res.redirect('/game/' + gameName);
 });
 
-app.get("/game/:gameID", function (req, res) {
+app.get("/game/:gameName", function (req, res) {
   // TODO: should really change this to post...
   // At this point, user info should be in the req.session hopefully...
-  res.render("game_room.jade",
-             {
-               gameID: req.params.gameID,
-               sessionID: req.sessionID
-             });
+  var gameName = req.params.gameName
+  GameRoomHandler.checkRoom(gameName, function(err, gameRoom){
+    var gameID = gameRoom._id;
+    console.log('this is the game id ' + gameID);
+    res.render("game_room.jade",
+               {
+                 gameID: gameID,
+                 sessionID: req.sessionID
+               });
+  })
 });
 
 var server = http.createServer(app);

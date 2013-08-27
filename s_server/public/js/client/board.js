@@ -24,6 +24,7 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
     this.rollList = rollList;
     this.portList = portList;
     this.portResourceList = portResourceList;
+    this.turn = new Turn();
     
 
     //the radius for a single hex
@@ -60,8 +61,8 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
         this.vertexList = [];
         //The key for verticies are: (x_t, y_t, vertex_index) where vertex_index is 0 or 1 corresponding to the 0th or 1st vertex
         //hashtable in js is "associative array"; just an object where key=attr, val=attr vals
-        var edgeDict = {}
-        var vertexDict = {}      //js objects where the fields are keys and field values are values;
+        this.edgeDict = {};
+        this.vertexDict = {};      //js objects where the fields are keys and field values are values;
 
         //add in the rollNum=0 to correspond to the desert
         for (var i=0; i<this.resourceList.length; i++)
@@ -102,30 +103,30 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
                 //Attempt to create Edges
                 var edgeID = edgeIDs[j];
                 var edgeKey = 'h' + edgeID[0] + '_' + edgeID[1] + 'e' + edgeID[2];
-                if (edgeDict.hasOwnProperty(edgeKey))
-                    hex.edges[j] = edgeDict[edgeKey];
+                if (this.edgeDict.hasOwnProperty(edgeKey))
+                    hex.edges[j] = this.edgeDict[edgeKey];
                 else{
                     var tempEdge = new Edge(edgeID);
                     hex.edges[j] = tempEdge;
                     this.edgeList.push(tempEdge);
-                    edgeDict[edgeKey] = tempEdge;
-                }
+                    this.edgeDict[edgeKey] = tempEdge;
+                };
                 //Attempt to create verticies
                 var vertexID = vertexIDs[j];
                 var vertexKey = 'h' + vertexID[0] + '_' + vertexID[1] + 'v' + vertexID[2];
-                if (vertexDict.hasOwnProperty(vertexKey))
-                    hex.verticies[j] = vertexDict[vertexKey];
+                if (this.vertexDict.hasOwnProperty(vertexKey))
+                    hex.verticies[j] = this.vertexDict[vertexKey];
                 else{
                     var tempVertex = new Vertex(vertexID);
                     hex.verticies[j] = tempVertex;
                     this.vertexList.push(tempVertex);
-                    vertexDict[vertexKey] = tempVertex;
-                }
-            }
+                    this.vertexDict[vertexKey] = tempVertex;
+                };
+            };
 
 
             //Connect Edges to Verticies
-            //Edges are simple to connect since each time we initalize a Hex object, the Verticies needed for each Edge are already known
+            //Edges are simple to connect since each time we initialize a Hex object, the Verticies needed for each Edge are already known
             for (var j=0; j<6; j++){
                 //adjVerticies[0] should correspond to the "0" Vertex
                 //adjVerticies[1] should correspond to the "1" Vertex
@@ -136,9 +137,9 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
                 else{
                     hex.edges[j].adjVerticies[0] = hex.verticies[(j+1)%6];
                     hex.edges[j].adjVerticies[1] = hex.verticies[j];
-                }
-            }
-        }
+                };
+            };
+        };
 
 
         //Connect Verticies to Edges - this needs to be done after all Verticies and Edges are established, because some Verticies don't have 3 edges and we won't know that until all Hex are placed
@@ -153,13 +154,13 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
             //       1|               3/ \2
             var edgeIDs = []
             if (vertexIndex == 0){
-                var oppositeVertexIndex = 1
+                var oppositeVertexIndex = 1;
                 edgeIDs.push([x, y, 0]);
                 edgeIDs.push([x, y-1, 2]);
                 edgeIDs.push([x, y-1, 1]);
             }
             else if (vertexIndex == 1){
-                var oppositeVertexIndex = 0
+                var oppositeVertexIndex = 0;
                 edgeIDs.push([x, y, 0]);
                 edgeIDs.push([x, y, 1]);
                 edgeIDs.push([x+1, y, 2]);
@@ -167,31 +168,30 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
             for (var j=0; j<3; j++){
                 var edgeID = edgeIDs[j];
                 var edgeKey = 'h' + edgeID[0] + '_' + edgeID[1] + 'e' + edgeID[2];
-                if (edgeDict.hasOwnProperty(edgeKey)){
-                    var adjEdge = edgeDict[edgeKey];
+                if (this.edgeDict.hasOwnProperty(edgeKey)){
+                    var adjEdge = this.edgeDict[edgeKey];
                     vertex.adjEdges.push(adjEdge);
                     var tempVertex = adjEdge.adjVerticies[oppositeVertexIndex];
                     vertex.adjVerticies.push(tempVertex);
-                }
-            }
-
-        }
+                };
+            };
+        };
         //Ports:
         for (var i=0; i<this.portList.length; i++){
             //first 3 indicies of portID are the edgeID. 4th index is the positioning of the port
             var portID = this.portList[i];
             var edgeKey = 'h' + portID[0] + '_' + portID[1] + 'e' + portID[2];
-            var portEdge = edgeDict[edgeKey];
+            var portEdge = this.edgeDict[edgeKey];
             portEdge.portOrientation = portID[3];
             var portResource = this.portResourceList[i];
             portEdge.portType = portResource;
             portEdge.adjVerticies[0].portType = portResource;
             portEdge.adjVerticies[1].portType = portResource;
-        }
+        };
         this.thief = new Thief(robbed_hex);
-    }
+    };
     this.intializeBoard();
-}
+};
 
 Board.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     //ctx is Canvas context
@@ -207,13 +207,9 @@ Board.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     for (var i=0; i<vertexList.length; i++)
         vertexList[i].draw(paper, hexRadius, interHexDist, originCoord);
     this.thief.draw(paper, hexRadius, interHexDist, originCoord);
-    this.drawCurrentColorBox(paper);
+    this.turn.draw(paper);
 }
 
-Board.prototype.drawCurrentColorBox = function(paper) {
-    this.currPlayerColor = paper.rect(50,30,40,40).attr({"fill": curr_player.color})
-    this.diceRoll = paper.text(70,50, "").attr({"font-size": 24, "stroke": "white", "fill": "white"})
-};
 
 Board.prototype.preventDevelopment = function(){
     var edgeList = this.edgeList;
@@ -221,15 +217,21 @@ Board.prototype.preventDevelopment = function(){
 
     for (var i=0; i<edgeList.length; i++){
         var edge = edgeList[i];
-        edge.road.unhover(edge.hoverOnHandle, edge.hoverOffHandle);
-        edge.road.unclick(edge.clickHandle);
-    }
+        if (edge.toggleDevelopment){
+            edge.toggleDevelopment = false;
+            edge.road.unhover(edge.hoverOnHandle, edge.hoverOffHandle);
+            edge.road.unclick(edge.clickHandle);
+        }
+    };
     for (var i=0; i<vertexList.length; i++){
         var vertex = vertexList[i];
-        vertex.settle.unhover(vertex.hoverOnHandle);
-        vertex.settle.unclick(vertex.clickHandle);
-    }
-}
+        if (vertex.toggleDevelopment){
+            vertex.toggleDevelopment = false;
+            vertex.settle.unhover(vertex.hoverOnHandle);
+            vertex.settle.unclick(vertex.clickHandle);
+        }
+    };
+};
 
 Board.prototype.allowDevelopment = function(){
     var edgeList = this.edgeList;
@@ -237,15 +239,39 @@ Board.prototype.allowDevelopment = function(){
 
     for (var i=0; i<edgeList.length; i++){
         var edge = edgeList[i];
-        edge.road.hover(edge.hoverOnHandle, edge.hoverOffHandle);
-        edge.road.click(edge.clickHandle);
-    }
+        if (!edge.toggleDevelopment){
+            edge.toggleDevelopment = true;
+            edge.road.hover(edge.hoverOnHandle, edge.hoverOffHandle);
+            edge.road.click(edge.clickHandle);
+        }
+    };
     for (var i=0; i<vertexList.length; i++){
         var vertex = vertexList[i];
-        vertex.settle.hover(vertex.hoverOnHandle);
-        vertex.settle.click(vertex.clickHandle);
-    }
-}
+        if (!vertex.toggleDevelopment){
+            vertex.toggleDevelopment = true;
+            vertex.settle.hover(vertex.hoverOnHandle);
+            vertex.settle.click(vertex.clickHandle);
+        }            
+    };
+};
+
+// Board.prototype.updatePossibleDevelopments = function(){
+//     var hexList = this.hexList;
+//     var edgeList = this.edgeList;
+//     for (var i=0; i<edgeList.length; i++){
+//         var edge = edgeList[i];
+//         if (edge.canBuild())
+//             edge.allowBuild();
+//         else
+//             edge.disallowBuild();
+//     };
+//     for (var i=0; i<vertexList.length; i++){
+//         var vertex = vertexList[i];
+//         if (vertex.canBuild())
+//             vertex.allowBuild();
+//         else
+//             vertex.disallowBuild();
+// }
 
 function fisherYates(myArray){
     //randomizes the elements of the array
@@ -258,10 +284,10 @@ function fisherYates(myArray){
         tempj = myArray[j];
         myArray[i] = tempj;
         myArray[j] = tempi;
-    }
-}
+    };
+};
 
-function initalizeCanvas(width, height){
+function initializeCanvas(width, height){
     //draws the map's current game state - including all road, settlement, thief placements.
     var boardElem = document.getElementById("board");
     var canvas = document.getElementById("boardCanvas");
@@ -270,77 +296,19 @@ function initalizeCanvas(width, height){
     canvas.height = height;
     var ctx = canvas.getContext("2d");
     ctx.translate(0, 0);
-    return ctx 
+    return ctx;
 }
 
-function initalizeRaphael(width, height){
+function initializeRaphael(width, height){
     paper = Raphael(100,0,1000,800);
-    return paper
-}
+    return paper;
+};
 
-num_players = 4;
-turn_number = 0;
-start_game = false;
-debug = true;
-
-dice_list = [];
-dice = 0;
-pause_roll = true;
-
-function rotateTurn(){
-    turn_number++;
-    curr_player = player_list[turn_number % num_players];
-    var color = curr_player.color
-    board.currPlayerColor.attr({"fill": color})
-    board.diceRoll.attr({"text": ""})
-    if (color == 'blue')
-        board.diceRoll.attr({"fill": "white", "stroke": "white"})
-    else
-        board.diceRoll.attr({"fill": "black", "stroke": "black"})
-}
-
-
-function rollDie(){
-    if (pause_roll == false){
-        if (debug == false)
-            dice = Math.floor(Math.random() * 6 + 1) + Math.floor(Math.random() * 6 + 1);
-        else{
-            dice = dice + 1
-            dice = dice % 12
-        }
-        dice_list.push(dice)
-        board.diceRoll.attr({"text": dice})
-        var hexList = board.hexList;
-        var vertexList = board.vertexList;
-
-        if (dice == 7)
-            board.thief.rolled();
-        else{
-            for (var i=0; i<hexList.length; i++){
-                var hex = hexList[i];
-                if (hex.rollNum == dice && board.thiefurrentHex != hex){
-                    hex.rolled();
-                }
-                if (hex.rollNum == dice && board.thiefurrentHex == hex){
-                    board.thief.flashy();
-                }
-            }
-        }
-    }
-}
-
-function startGame(){
-    start_game = true;
-    pause_roll = false;
-    var hexList = board.hexList;
-    for (var i=0; i<hexList.length; i++){
-        hexList[i].freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 500);
-    }
-}
-
+debug = false;
 toggle_prob = 0
+
 function showProb(){
-    if (start_game){
+    if (turn.startGame){
         var hexList = board.hexList;
         toggle_prob += 1;
         if (toggle_prob == 3)
@@ -355,19 +323,27 @@ function showProb(){
 }
 
 function devCard(){
-    if (start_game){
-        var resourceList = curr_player.resourceList;
+    if (turn.playersTurn){
+        var resourceList = turn.currentPlayer.resourceList;
         resourceList[1] -= 1;
         resourceList[2] -= 1;
         resourceList[4] -= 1;
-        curr_player.devCards += 1;
+        turn.currentPlayer.devCards += 1;
     }
 }
 
+function setupBoard(boardIDList, resourceList, portList, rollList, portResourceList, playerName){
+    board = new Board(boardIDList, resourceList, rollList, portList, portResourceList);
+    turn = board.turn;
+    turn.playerName = playerName;
+    console.log('player name is: ' + turn.playerName);
 
-function gameSetup(board, paper, hexRadius, interHexDist, originCoord){
-    //placeSettlement(board, paper, hexRadius, interHexDist, originCoord)
-    allowSettlements(board.vertexList, true)
+    var gameboardDiv = $("#game-well")[0];
+    paper = Raphael(gameboardDiv, 700, 550);
+    paper.canvas.style.backgroundColor = '#6f799b';
+
+    board.draw(paper, 50, 8, [250,100]);
+    $("#startGame").click(function(){turn.notifyStartGame()});
 }
 
 function init(){
@@ -375,22 +351,12 @@ function init(){
     //  for original game:  
     //4 wood //4 wheat //4 sheep //3 brick //3 ore //1 desert
     var resourceList = [-1,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,4,4,4];
-    var rollList = [5,2,6,3,8,10,9,12,11,4,8,10,9,4,5,6,3,11];
     var portList = [[-1,-1,1,4], [1,-1,2,5], [3,0,2,5], [4,2,0,0], [4,3,1,1], [3,4,1,1], [2,4,2,2], [0,3,0,3], [-1,1,0,3]];
+    var rollList = [5,2,6,3,8,10,9,12,11,4,8,10,9,4,5,6,3,11];
     var portResourceList = [0,1,2,3,4,5,5,5,5]
-
-    board = new Board(boardID, resourceList, rollList, portList, portResourceList);
-    player_list = [];
-    for (var i=0; i<num_players; i++){
-        player_list.push(new Player(i));
-    }
-    curr_player = player_list[0];
-    //paper = Raphael($("#game-container"), 640, 480);
-    paper = Raphael("game-well", 900, 600);
-    board.draw(paper, 50, 8, [250,100]);
-//    gameSetup(board, paper, 50, 8, [250,100]);
+    setupBoard(boardID, resourceList, portList, rollList, portResourceList, "");
 }
 
-window.onload = function(){
-    init();
-}
+// window.onload = function(){
+//     init();
+// }

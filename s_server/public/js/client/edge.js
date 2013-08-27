@@ -1,5 +1,4 @@
 //Edge class
-//
 
 function Edge(edgeID){
     //There are three unique Edges for each hexID (see Hex class for how the triangular coordinate system orders the Hex objects)
@@ -51,7 +50,7 @@ function Edge(edgeID){
     // if this Edge is a port, portOrientation = direction that the port faces
     this.portOrientation = -1
 
-    this.initalizeEdge = function(){
+    this.initializeEdge = function(){
         this.color = 'transparent';
         this.adjVerticies = new Array(2);
         //sets this.start and this.end, keeping radius=1, and origin=(0,0)
@@ -66,11 +65,11 @@ function Edge(edgeID){
         this.end = [end[0] + this.hexCenter[0], -end[1] + this.hexCenter[1]];
     }
 
-    this.initalizeEdge();
+    this.initializeEdge();
 };
 
-
 Edge.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
+    this.paper = paper;
     var _this = this;
     var roadWidth = interHexDist * 0.5;
     var startPt = this.start;
@@ -108,14 +107,13 @@ Edge.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         this.drawPort(startPt, endPt, interHexDist)
 
     //using Raphael - store the line in this.path
-    this.road = paper.path('M' + startPt[0] + ',' + startPt[1] + ',L' + endPt[0] + ',' + endPt[1]);
+    this.road = this.paper.path('M' + startPt[0] + ',' + startPt[1] + ',L' + endPt[0] + ',' + endPt[1]);
     this.road.attr("stroke-width", String(roadWidth));
     this.road.attr("stroke", 'black');
     this.road.attr("opacity", 0);
 
     this.hoverOnHandle = function(){
-        var canBuild = _this.canBuild()
-        if (canBuild > 0)
+        if (turn.startGame && _this.canBuild())
             this.g = this.glow({color: "#FFF", width: 10});
     }
     this.hoverOffHandle = function(){
@@ -125,46 +123,77 @@ Edge.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         }
     }
     this.clickHandle = function(){
-        if (_this.canBuild())
-            _this.buildRoad();
+        if (turn.startGame && _this.canBuild()){
+            _this.buildRoad(board.turn.currentPlayer, false);
+            var data = {
+                "type": "edge",
+                "id": _this.ID,
+                "owner": board.turn.currentPlayer.ID,
+            }
+            transmitBoardUpdate(data);
+        }
     }
+    this.road.hover(this.hoverOnHandle, this.hoverOffHandle);
+    this.road.click(this.clickHandle);
+    this.toggleDevelopment = true;
+};
+
+Edge.prototype.allowBuild = function() {
     this.road.hover(this.hoverOnHandle, this.hoverOffHandle);
     this.road.click(this.clickHandle);
 };
 
+Edge.prototype.disallowBuild = function() {
+    this.road.unhover(this.hoverOnHandle, this.hoverOffHandle);
+    this.road.unclick(this.clickHandle);
+};
+
 Edge.prototype.canBuild = function() {
+    var currentPlayer = board.turn.currentPlayer;
     if (this.owner != -1)
         return false;
     var allow = false
     var adjVert1 = this.adjVerticies[0];
     var adjVert2 = this.adjVerticies[1];
-    if (adjVert1.owner == curr_player.ID || adjVert2.owner == curr_player.ID){
-        allow = true;
-    };
-    if (adjVert1.owner == -1){
-        for (var i=0; i<adjVert1.adjEdges.length; i++){
-            if (adjVert1.adjEdges[i].owner == curr_player.ID){
-                allow = true;
-            }
+    if (turn.roll > 0){
+        if (adjVert1.owner == currentPlayer.ID || adjVert2.owner == currentPlayer.ID){
+            allow = true;
         };
-    };
-    if (adjVert2.owner == -1){
-        for (var i=0; i<adjVert2.adjEdges.length; i++){
-            if (adjVert2.adjEdges[i].owner == curr_player.ID){
-                allow = true;
-            }
+        if (adjVert1.owner == -1){
+            for (var i=0; i<adjVert1.adjEdges.length; i++){
+                if (adjVert1.adjEdges[i].owner == currentPlayer.ID){
+                    allow = true;
+                }
+            };
         };
-    };
-    if (allow){
-        return curr_player.buildRoad(false);
+        if (adjVert2.owner == -1){
+            for (var i=0; i<adjVert2.adjEdges.length; i++){
+                if (adjVert2.adjEdges[i].owner == currentPlayer.ID){
+                    allow = true;
+                }
+            };
+        };
+        if (allow){
+            return currentPlayer.buildRoad(false);
+        }
+        return false
     }
-    return false
+    else{   //different rules for setup-phase
+        if (currentPlayer.initialSettlement == adjVert1 || currentPlayer.initialSettlement == adjVert2)
+            return true;
+    }
 };
 
-Edge.prototype.buildRoad = function(startPt, endPt, interHexDist){
-    curr_player.buildRoad(true);
-    this.owner = curr_player.ID;
-    this.road.animate({stroke: curr_player.color, opacity: 1}, 200);
+Edge.prototype.buildRoad = function(player, receiveUpdate){
+    if (!receiveUpdate)
+        player.buildRoad(true);
+    this.owner = player.ID;
+    this.road.animate({stroke: player.color, opacity: 1}, 200);
+}
+
+Edge.prototype.update = function(data){
+    var player = turn.playerList[data.owner];
+    this.buildRoad(player, true);
 }
 
 Edge.prototype.drawPort = function(startPt, endPt, interHexDist){
@@ -177,12 +206,12 @@ Edge.prototype.drawPort = function(startPt, endPt, interHexDist){
     var portEndptsOffset = getPortOffset(this.portOrientation, interHexDist/2);
 
     var middle = [Math.round((startPt[0] + endPt[0])/2 + portCenterOffset[0]), Math.round((startPt[1] + endPt[1])/2 + portCenterOffset[1])]
-    //this.portShape = paper.path('M' + startPt[0] + ',' + startPt[1] + ',L' + endPt[0] + ',' + endPt[1]);
+    //this.portShape = this.paper.path('M' + startPt[0] + ',' + startPt[1] + ',L' + endPt[0] + ',' + endPt[1]);
     startPt = [startPt[0] + Math.round(portEndptsOffset[0]), startPt[1] + Math.round(portEndptsOffset[1])]
     endPt = [endPt[0] + Math.round(portEndptsOffset[0]), endPt[1] + Math.round(portEndptsOffset[1])]
-    this.portShape = paper.path('M' + startPt[0] + ',' + startPt[1] + ',S' + middle[0] + ',' + middle[1] + ',' + endPt[0] + ',' + endPt[1]);
+    this.portShape = this.paper.path('M' + startPt[0] + ',' + startPt[1] + ',S' + middle[0] + ',' + middle[1] + ',' + endPt[0] + ',' + endPt[1]);
     this.portShape.attr("stroke-width", String(interHexDist*.2));
-    //this.flag = paper.path("M19.562,10.75C21.74,8.572,25.5,7,25.5,7c-8,0-8-4-16-4v10c8,0,8,4,16,4C25.5,17,21.75,14,19.562,10.75zM6.5,29h2V3h-2V29z")
+    //this.flag = this.paper.path("M19.562,10.75C21.74,8.572,25.5,7,25.5,7c-8,0-8-4-16-4v10c8,0,8,4,16,4C25.5,17,21.75,14,19.562,10.75zM6.5,29h2V3h-2V29z")
     //this.portShape.attr("stroke", 'black');
     this.portShape.attr({"fill": color, "stroke": "none"});
     //this.portShape.attr("opacity", 0.3);

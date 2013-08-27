@@ -1,6 +1,11 @@
+//list of all the socket interactions (client side) on the game page
+
 var socket;
-var gameID = location.pathname.match(/\/game\/(.*)/)[1];
+var gameName = location.pathname.match(/\/game\/(.*)/)[1];
+var gameID;
+
 $(document).ready(function() {
+  gameID = $("#game-id").text();
   socket = io.connect('http://localhost:3000');
   socket.on('connect', function() {
     socket.emit('joiningRoom', gameID);
@@ -40,4 +45,41 @@ $(document).ready(function() {
       $(this).scrollTop(scrollTo + $(this).scrollTop());
     }
   });
+  socket.on('setupGame', setupGame);
+  socket.on('receiveBoardUpdate', receiveBoardUpdate);
 });
+
+function setupGame(data){
+  setupBoard(data.boardID, data.resourceList, data.portList, data.rollList, data.portResourceList, data.userName);
+}
+
+function transmitBoardUpdate(data){
+  socket.emit('transmitBoardUpdate', gameID, data);
+}
+
+function receiveBoardUpdate(data){
+  console.log('receive update from server!')
+  console.log(data)
+  if (data.type == "roll"){
+    turn.roll(data.rolled);
+  }
+  else if (data.type == "turn"){
+    console.log("go to next turn")
+    turn.nextTurn(true);
+  }
+  else if (data.type == "vertex"){
+    var vertexKey = 'h' + data.id[0] + '_' + data.id[1] + 'v' + data.id[2];
+    board.vertexDict[vertexKey].update(data);
+  }
+  else if (data.type == "edge"){
+    var edgeKey = 'h' + data.id[0] + '_' + data.id[1] + 'e' + data.id[2];
+    board.edgeDict[edgeKey].update(data);
+  }
+  else if (data.type == "start"){
+    turn.initializePlayers(data);
+  }
+}
+
+function readyToStart(){
+  socket.emit('readyToStart', gameID);
+}

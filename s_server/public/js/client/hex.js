@@ -28,7 +28,7 @@ function Hex(hexID, resource, rollNum){
     this.resourceType = resource;
     this.rollNum = rollNum;
 
-    this.initalizeHex = function(){
+    this.initializeHex = function(){
         this.color = resourceColor(this.resourceType);
         this.brighterColor = resourceColorAlternate(this.resourceType);
         this.numberColor = numberColor(this.resourceType);
@@ -42,7 +42,7 @@ function Hex(hexID, resource, rollNum){
         this.pentPoints = getVerticiesOfPent(1);
     }
 
-    this.initalizeHex()
+    this.initializeHex()
 }
 
 Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
@@ -52,6 +52,7 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     //interhexDist: distance bewteen two Hex tiles
     //originCoord:  the center coordinate of the [0,0] Hex tile
 
+    this.paper = paper;
     var hexCenter = [this.center[0] * hexRadius + originCoord[0], this.center[1] * hexRadius + originCoord[1]];
     this.hexCenter = hexCenter;
     var hexPoints = Hex.prototype.hexPoints;
@@ -73,24 +74,24 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
         moveString += drawPoints[i][0] + ' ' + drawPoints[i][1];
     }
     moveString += 'Z';
-    var hexElem = paper.path(moveString)
+    var hexElem = this.paper.path(moveString)
     hexElem.attr({stroke: "none", fill: this.color, opacity: 1});
     hexElem.hover(
         //Function for drawing the hex-dots on hover:
         function() {
-            if (start_game && toggle_prob == 0)
+            if (turn.startGame && toggle_prob == 0)
                 _this.freqDots.animate({"stroke-opacity":1, "fill-opacity":0.6}, 200);
         },
         function(){
-            if (start_game && toggle_prob == 0)
+            if (turn.startGame && toggle_prob == 0)
                 _this.freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 200);
         });
-    this.hexShape = paper.set();
+    this.hexShape = this.paper.set();
     this.hexShape.push(hexElem);
 
     //Draw the roll number
     if (this.rollNum != 0){
-        this.number = paper.text(hexCenter[0], hexCenter[1], String(this.rollNum))
+        this.number = this.paper.text(hexCenter[0], hexCenter[1], String(this.rollNum))
         this.number.attr({opacity: 1, fill:this.numberColor, font: '5x Helvetica, Arial'}).toFront();
         if (this.rollNum == 6 || this.rollNum == 8)
             this.number.attr({"font-size": 18});
@@ -99,7 +100,7 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     }
 
     //Hex-Dots indicating the frequency of rolls:
-    this.freqDots = paper.set();
+    this.freqDots = this.paper.set();
 
     if (this.rollNum != 0){
         var hexDotPosnRadius = drawHexRadius * 0.3
@@ -109,7 +110,7 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
             var tempX = Math.round(pentPoints[i][0] * hexDotPosnRadius + hexCenter[0]);
             var tempY = Math.round(pentPoints[i][1] * hexDotPosnRadius + hexCenter[1]);
             drawPoints.push([tempX, tempY]);
-            var tempDot = paper.circle(tempX, tempY, hexDotRadius)
+            var tempDot = this.paper.circle(tempX, tempY, hexDotRadius)
 
             if (i < 6 - Math.abs(this.rollNum - 7))
                 tempDot.attr("fill", 'black');
@@ -144,17 +145,17 @@ Hex.prototype.robPlayer = function(){
     for (var i=0; i<this.verticies.length; i++){
         var vertex = this.verticies[i];
 
-        if (vertex.owner != -1 && player_list[vertex.owner].numCards() > 0 && vertex.owner != curr_player.ID){
+        if (vertex.owner != -1 && turn.playerList[vertex.owner].numCards() > 0 && vertex.owner != board.turn.currentPlayer.ID){
             waitForThief = true;
 
-            //allow the adjacent settlements/cities to be clicked
+            //allow the adjacent settlements/cturn to be clicked
             vertex.onRobHoverOnHandle = function(){
                 this.g = this.glow({color: "#FFF", width: 10});
             }
             vertex.onRobClickHandle = function(){
                 console.log("robbed!");
-                var stolen_res = player_list[vertex.owner].steal();
-                curr_player.resourceList[stolen_res] += 1;
+                var stolen_res = turn.playerList[vertex.owner].steal();
+                board.turn.currentPlayer.resourceList[stolen_res] += 1;
                 for (var j=0; j<_this.verticies.length; j++){
                     var tempVert = _this.verticies[j];
                     tempVert.settle.unclick(tempVert.onRobClickHandle);
@@ -223,6 +224,7 @@ function resourceColor(resourceIndex){
 
 function resourceColorAlternate(resourceIndex){
     //converts the resource index to the corresponding color
+    // this is the alternate color that is flashed
     if (resourceIndex == 0) return '#33FF33' //wood
     else if (resourceIndex == 1) return '#FFFF66' //wheat
     else if (resourceIndex == 2) return '#FFFFFF' //sheep
@@ -231,7 +233,7 @@ function resourceColorAlternate(resourceIndex){
 }
 
 function numberColor(resourceIndex){
-    //converts the resource index to the corresponding color
+    //for the color of the "roll number" that is drawn on to the hex
     if (resourceIndex == -1) return '#FFFFFF' //desert
     else if (resourceIndex == 0) return '#FFFFFF' //wood
     else if (resourceIndex == 1) return '#321c00' //wheat
@@ -276,119 +278,3 @@ function triangularToCartesian(v_t, hexRadius){
     return v_c;
 }
 
-function Thief(hex){
-    this.currentHex = hex;
-}
-
-Thief.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
-    this.origin = this.currentHex.hexCenter;
-    this.color = "grey";
-
-    this.currentHex.hexCenter;
-    var thiefRadius = hexRadius * 0.6;
-
-    var hexCenter = this.currentHex.hexCenter;
-    var hexPoints = Hex.prototype.hexPoints;
-    var _this = this
-
-    //Draw the Hexagon
-    var drawHexRadius =  hexRadius - interHexDist / 2.0;
-    var drawPoints = [];
-
-    for (var i=0; i<6; i++){
-        var tempX = Math.round(hexPoints[i][0] * thiefRadius + hexCenter[0]);
-        var tempY = Math.round(hexPoints[i][1] * thiefRadius + hexCenter[1]);
-        drawPoints.push([tempX, tempY]);
-    }
-
-    var moveString = 'M';
-    for (var i=0; i<6; i++){
-        if (i != 0)
-            moveString += 'L';
-        moveString += drawPoints[i][0] + ' ' + drawPoints[i][1];
-    }
-
-    moveString += 'Z';
-    this.thiefShape = paper.path(moveString);
-    this.thiefShape.attr({stroke: this.color, "stroke-width":10, opacity: 0.9});
-
-    //functionality to move Thief:
-    paper.setStart();
-
-    this.hexChoosing = paper.setFinish();
-}
-
-Thief.prototype.rolled = function(){
-    this.thiefShape.animate({"stroke": "black"}, 200, function(){
-        this.animate({"stroke": "grey"}, 500);
-    });
-    pause_roll = true;
-    board.preventDevelopment()
-
-    var hexList = board.hexList;
-    var _this = this;
-    //Changes the robbed tile. cannot choose current tile
-    for (var i=0; i<hexList.length; i++){
-        if (hexList[i] != this.currentHex){
-            this.allowChooseTile(hexList[i]);
-        }
-    }
-}
-
-Thief.prototype.allowChooseTile = function(hex){
-    //turns on the event handles to allow choosing a hex tile
-    var _this = this;
-
-    hex.hoverOnHandle = function(){
-        this.g = this.glow({color: "#FFF", width: 10});
-    }
-    hex.hoverOffHandle = function(){
-        if (this.hasOwnProperty("g")){
-            this.g.remove();
-            delete this.g;
-        }
-    }
-    hex.clickHandle = function(){
-        _this.changeTile(hex);
-    }
-    hex.hoverFcn = hex.hexShape.hover(hex.hoverOnHandle, hex.hoverOffHandle)
-    hex.clickFcn = hex.hexShape.click(hex.clickHandle);
-}
-
-Thief.prototype.flashy = function(){
-    this.thiefShape.animate({transform: "...r120"}, 600)
-}
-
-Thief.prototype.changeTile = function(hex){
-    //physically moves the Thief on the board
-    var hexList = board.hexList;
-
-    for (var i=0; i<hexList.length; i++){
-        if (hexList[i] != this.currentHex){
-            hexList[i].hexShape.unhover(hexList[i].hoverOnHandle);
-            hexList[i].clickFcn.unclick(hexList[i].clickHandle);
-        }
-        else
-            if (hex.hasOwnProperty("g")){
-                this.g.remove();
-                delete this.g;
-            }
-    }
-
-    var prevHex = this.currentHex;
-    var nextHex = hex;
-    // this.thiefShape.attr({stroke: "grey", "stroke-width":10, opacity: 0.9});
-    var x = nextHex.hexCenter[0] - prevHex.hexCenter[0];
-    var y = nextHex.hexCenter[1] - prevHex.hexCenter[1];
-    var pCenter = prevHex.center;
-    var nCenter = nextHex.center;
-    var dist = Math.sqrt(Math.pow(nCenter[0] - pCenter[0], 2) + Math.pow(nCenter[1] - pCenter[1], 2));
-    var numRot = Math.round(dist / 2 );
-
-    this.thiefShape.animate({transform: "...T" + x + "," + y + ',r' + (60 * numRot)}, dist * 150, function(){
-        hex.robPlayer() 
-    })
-    this.currentHex = hex;
-
-    pause_roll = false;
-}

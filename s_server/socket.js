@@ -66,34 +66,36 @@ function onSocketConnection(client) {
   gameRoomSockets.addClientListeners(client);
 
 
-  client.on('createGame', createGame);
-  client.on('joinGame', joinGame);
+  client.on('createGame', _createGame);
+  client.on('joinGame', _joinGame);
 };
 
-function createGame(userName, gameName) {
-  console.log('createGame' + userName + ' ' + gameName);
-    // save the userName for this session
-    this.handshake.session.userName = userName;
-    this.handshake.session.save();
-    GameRoomHandler.createGameRoom(gameName, function(err, gameRoom, exists) {
-      var data = {};
-      if (exists) {
-        data.success = false;
-        data.message = "gameID " + gameName + " already exists";
-      } else {
-        data.success = true;
-        data.message = "gameID " + gameName + "was created";
-        console.log('gameroom was created id:' + gameRoom._id);
-        console.log('gameroom was created gameName' + gameRoom.gameName);
-        data.gameID = gameRoom._id;
-        data.join = true;
-        data.userName = userName;
-      }
-      this.emit('handleGameRequest', data);
-    }.bind(this));
+function _createGame(userName, gameName) {
+  console.log('createGame ' + userName + ' ' + gameName);
+  // save the userName for this session
+  this.handshake.session.userName = userName;
+  this.handshake.session.save();
+  GameRoomHandler.createGameRoom(gameName, function(err, gameRoom, exists) {
+    var data = {};
+    if (exists) {
+      data.success = false;
+      data.message = "gameID " + gameName + " already exists";
+    } else {
+      data.success = true;
+      data.message = "gameID " + gameName + " was created";
+      console.log('gameroom was created id: ' + gameRoom._id);
+      console.log('gameroom was created gameName: ' + gameRoom.gameName);
+      data.gameID = gameRoom._id;
+      data.join = true;
+      data.userName = userName;
+      data.gameName = gameName;
+    }
+    this.emit('handleGameRequest', data);
+  }.bind(this));
 }
 
-function joinGame(userName, gameName) {
+function _joinGame(userName, gameName) {
+  //is called when someone joins an existing game
   console.log('joinGame' + userName + ' ' + gameName);
   // save the userName for this session
   this.handshake.session.userName = userName;
@@ -109,11 +111,15 @@ function joinGame(userName, gameName) {
       data.gameID = gameRoom._id;
       data.join = true;
     }
+
     console.log('join game result was ' );
     console.log(data);
     this.emit('handleGameRequest', data);
   }.bind(this));
 }
+
+// reorganized so that pple who create a room and pple who join existing rooms
+// use the same function to setup their boards
 
 module.exports.io = io;
 module.exports.init = init;

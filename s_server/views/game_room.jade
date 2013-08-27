@@ -1,12 +1,15 @@
 extends layout
 block content
   link(rel='stylesheet', href="/stylesheets/game.css")
+  div(id="game-id", style='visibility: hidden') #{gameID}
   script(type='text/javascript', src='/js/client/raphael-min.js');
+  script(type='text/javascript', src='/js/client/board.js');
+  script(type='text/javascript', src='/js/client/turn.js');
   script(type='text/javascript', src='/js/client/hex.js');
   script(type='text/javascript', src='/js/client/vertex.js');
   script(type='text/javascript', src='/js/client/edge.js');
   script(type='text/javascript', src='/js/client/player.js');
-  script(type='text/javascript', src='/js/client/board.js');
+  script(type='text/javascript', src='/js/client/thief.js');
   script(type='text/javascript', src='/js/game.js');
 
   div(class="container-fluid fill", style="height:100%")

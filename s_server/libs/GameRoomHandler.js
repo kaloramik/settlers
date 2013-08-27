@@ -1,3 +1,6 @@
+//game logic
+//no socket stuff!
+
 var self = this;
 
 var mongoose = require('mongoose'),
@@ -6,7 +9,7 @@ var mongoose = require('mongoose'),
 // attempts to create a game room. if one already exists,
 // use that one. callback takes (error, createdGameRoom)
 
-function initalizeGameBoard(debug){
+function initializeGameBoard(debug){
 
   var boardID = [[0,0],[1,0],[2,0],[3,1],[4,2],[4,3],[4,4],[3,4],[2,4],[1,3],[0,2],[0,1],[1,1],[2,1],[3,2],[3,3],[2,3],[1,2],[2,2]]
   //  for original game:  
@@ -18,15 +21,14 @@ function initalizeGameBoard(debug){
   var portResourceList = [0,1,2,3,4,5,5,5,5]
 
   
-  if (!debug){
+  // if (!debug){
     //randomizes the elements in array
-    fisherYates(resourceList);
-    fisherYates(portResourceList);
-  }
-  return boardID, resouceList, portList, rollList, portResourceList
+  self.fisherYates(resourceList);
+  self.fisherYates(portResourceList);
+  return [boardID, resourceList, portList, rollList, portResourceList];
 }
 
-function fisherYates(myArray){
+self.fisherYates = function(myArray){
     //randomizes the elements of the array
     var i = myArray.length;
     var j, tempi, tempj;
@@ -40,31 +42,27 @@ function fisherYates(myArray){
     }
 }
 
-
 self.createGameRoom = function(gameName, callback) {
   GameRoom.findOne({gameName: gameName}, function(err, gameRoom) {
     var existed = true;
     if (gameRoom == null) {
 
       //************ CREATE THE GAME ****************
-      // initalize the game board here (randomize stuff)
-      var boardID, resouceList, portList, rollList, portResourceList = initalizeGameBoard(false);
-
+      // initialize the game board here (randomize stuff)
+      var boardData = initializeGameBoard(false);
       gameRoom = new GameRoom(
         {
           gameName: gameName,
           playerList: [],
-          boardID: boardID,
-          resourceList: resourceList,
-          portList: portList,
-          rollList: rollList,
-          portResourceList: portResourceList,
+          boardID: boardData[0],
+          resourceList: boardData[1],
+          portList: boardData[2],
+          rollList: boardData[3],
+          portResourceList: boardData[4],
           currentTurn: 0,
           state: "waiting",
           robber: 0,
           playerObjList: [],
-          vertexList: {},
-          edgeList: {}
         }
       );
       gameRoom.save();
@@ -88,6 +86,21 @@ self.checkRoom = function(gameName, callback) {
     // TODO: check num players as well
     if (typeof callback === "function") {
       callback(err, gameRoom, canJoin);
+    }
+  });
+}
+
+self.updateRoom = function(gameID, callback) {
+ //finds room by ID
+  GameRoom.findOne({_id: gameID}, function(err, gameRoom) {
+    // TODO: handle err
+    var canJoin = true;
+    if (gameRoom == null) {
+      canJoin = false;
+      err = "room does not exist";
+    }
+    if (typeof callback === "function") {
+      callback(err, gameRoom);
     }
   });
 }

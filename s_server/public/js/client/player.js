@@ -6,8 +6,8 @@ function Player(playerID){
 
     this.ID = playerID;
     //wood, wheat, sheep, brick, ore
-    //starting resources for inital settlements and roads
-    this.resourceList = [4,2,2,4,0];
+    //starting resources for initial settlements and roads
+    this.resourceList = [0,0,0,0,0];
     if (debug)
         this.resourceList = [20,20,20,20,20];
     //Ports              0      1    2     3     4   (3:1)
@@ -15,13 +15,21 @@ function Player(playerID){
     this.color = colorSettlement(this.ID);
     this.altColor = colorSettlementAlternate(this.ID);
     this.devCards = 0;
+    this.mustBuildRoad = 0;
+    this.mustBuildSettle = 0;
+    this.initialSettlement;
 }
 
 Player.prototype.buildRoad = function(build){
+    if (this.mustBuildRoad > 0){
+        if (build)
+            this.mustBuildRoad--;
+        return true;        //build a free road!
+    }
     if (this.resourceList[0] > 0 && this.resourceList[3] > 0){
         if (build){
-            curr_player.resourceList[0] -= 1;
-            curr_player.resourceList[3] -= 1;
+            board.turn.currentPlayer.resourceList[0] -= 1;
+            board.turn.currentPlayer.resourceList[3] -= 1;
         }
         return true;
     }
@@ -29,12 +37,17 @@ Player.prototype.buildRoad = function(build){
 }
 
 Player.prototype.buildSettlement = function(build){
+    if (this.mustBuildSettle > 0){
+        if (build)
+            this.mustBuildSettle--;
+        return true;        //build a free settle!
+    }
     if (this.resourceList[0] > 0 && this.resourceList[1] > 0 && this.resourceList[2] > 0 && this.resourceList[3] > 0){
         if (build){
-            curr_player.resourceList[0] -= 1;
-            curr_player.resourceList[1] -= 1;
-            curr_player.resourceList[2] -= 1;
-            curr_player.resourceList[3] -= 1;
+            board.turn.currentPlayer.resourceList[0] -= 1;
+            board.turn.currentPlayer.resourceList[1] -= 1;
+            board.turn.currentPlayer.resourceList[2] -= 1;
+            board.turn.currentPlayer.resourceList[3] -= 1;
         }
         return true;
     }
@@ -44,9 +57,9 @@ Player.prototype.buildSettlement = function(build){
 Player.prototype.buildCity = function(build){
     if (this.resourceList[1] > 0 && this.resourceList[2] > 0 && this.resourceList[4] > 0){
         if (build){
-            curr_player.resourceList[1] -= 1;
-            curr_player.resourceList[2] -= 1;
-            curr_player.resourceList[4] -= 1;
+            board.turn.currentPlayer.resourceList[1] -= 1;
+            board.turn.currentPlayer.resourceList[2] -= 1;
+            board.turn.currentPlayer.resourceList[4] -= 1;
         }
         return true;
     }
@@ -76,6 +89,7 @@ Player.prototype.numCards = function(){
 }
 
 
+
 function colorSettlement(playerNum){
     if (playerNum == 0)          return 'red';
     else if (playerNum == 1)     return 'blue';
@@ -91,11 +105,13 @@ function colorSettlementAlternate(playerNum){
 }
 
 function printInventory(){
-    var resList = curr_player.resourceList;
-    console.log("Player: " + curr_player.ID + " (" +  curr_player.color + ")");
+    var resList = turn.currentPlayer.resourceList;
+    console.log("Player: " + turn.currentPlayer.ID + " (" +  turn.currentPlayer.color + ")");
     console.log("resources: wood wheat sheep brick ore");
     console.log("            " + resList[0] + "     "  + resList[1] + "     " + resList[2] + "     " + resList[3] + "    " + resList[4] + " ");
-    console.log("owned ports: " + curr_player.ownedPorts);
-    console.log("dev cards: " + curr_player.devCards);
+    console.log("owned ports: " + turn.currentPlayer.ownedPorts);
+    console.log("dev cards: " + turn.currentPlayer.devCards);
+    if (turn.currentPlayer.mustBuildRoad || turn.currentPlayer.mustBuildSettlement)
+        console.log("must build " + turn.currentPlayer.mustBuildRoad + " road and " + turn.currentPlayer.mustBuildSettle + " settlement");
 }
 
