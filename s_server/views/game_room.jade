@@ -68,10 +68,10 @@ block content
           input(type='button', id='chat-button', value='send')
 
       div(class="span3", id="right-side-bar")
-        div(class="well", id="chat-well")
-          legend Chatlog
-          ul(id="chat-list")
-            li(id="test-chat") chat window
+        div(class="well", style="height:375px;")
+          legend Event Log
+          div(id="event-log", style="height:300px;overflow:scroll; border:1px solid #C0C0C0; border-radius:10px;")
+            div mik says moo
         div(class="well", id="trade-window")
           legend Trade Window
           div(class="row-fluid")
