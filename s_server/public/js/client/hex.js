@@ -79,11 +79,11 @@ Hex.prototype.draw = function(paper, hexRadius, interHexDist, originCoord){
     hexElem.hover(
         //Function for drawing the hex-dots on hover:
         function() {
-            if (turn.startGame && toggle_prob == 0)
+            if (turn.num > 0 && toggle_prob == 0)
                 _this.freqDots.animate({"stroke-opacity":1, "fill-opacity":0.6}, 200);
         },
         function(){
-            if (turn.startGame && toggle_prob == 0)
+            if (turn.num > 0 && toggle_prob == 0)
                 _this.freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 200);
         });
     this.hexShape = this.paper.set();

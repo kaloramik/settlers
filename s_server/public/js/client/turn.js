@@ -115,8 +115,13 @@ Turn.prototype.recolorRoll = function(){
 }
 
 Turn.prototype.getNextPlayer = function(){
-    if (this.num == 0)
+    if (this.num == 0){
+        // setup-phase is over! start of the actual game. turn off freqDots
         this.num++;
+        var hexList = board.hexList;
+        for (var i=0; i<hexList.length; i++)
+            hexList[i].freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 300);
+    }
     if (this.num > 0)
           return this.playerList[(this.num - 1) % this.numPlayers];
     else if (this.num < 0)
@@ -173,8 +178,6 @@ Turn.prototype.initializePlayers = function(data){
         this.playerList.push(newPlayer);
     }
     var hexList = board.hexList
-    for (var i=0; i<hexList.length; i++)
-        hexList[i].freqDots.animate({"stroke-opacity":0, "fill-opacity":0}, 300);
     this.numPlayers = this.playerList.length;
     this.num = - 2 * this.numPlayers - 1; //start at 1 before the current turn, so that
     this.nextTurn(true);    // when nextTurn is called, turn.num++ finds the 1st player
