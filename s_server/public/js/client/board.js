@@ -48,13 +48,6 @@ function Board(boardID, resourceList, rollList, portList, portResourceList){
         //              EDGES                         verticies
         //
 
-        //randomize the array == randomize the tiles
-        if (debug == false){
-            fisherYates(this.resourceList);
-            fisherYates(this.portResourceList);
-        }
-        else
-            console.log("Debug mode:  start with 20 resources each, nothing randomized")
 
         this.hexList = [];
         this.edgeList = [];
