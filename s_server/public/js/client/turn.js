@@ -156,10 +156,10 @@ Turn.prototype.initializePlayers = function(data){
     this.startGame = true;
 
     var _this = this;
-    $("#rollDie").click(function(){_this.rollDie(false);});
-    $("#changeTurn").click(function(){_this.nextTurn(false);});
-    $("#showProb").click(function(){showProb();});
-    $("#devCard").click(function(){devCard();});
+    $("#btn-roll").click(function(){_this.rollDie(false);});
+    $("#btn-end").click(function(){_this.nextTurn(false);});
+    $("#btn-prob").click(function(){showProb();});
+    $("#btn-buy-dev").click(function(){devCard();});
     $("#printInv").click(function(){printInventory();});
     var playerData = data.playerData;
     for (i=0; i<playerData.length; i++){

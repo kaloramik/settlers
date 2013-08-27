@@ -343,7 +343,7 @@ function setupBoard(boardIDList, resourceList, portList, rollList, portResourceL
     paper.canvas.style.backgroundColor = '#6f799b';
 
     board.draw(paper, 50, 8, [250,100]);
-    $("#startGame").click(function(){turn.notifyStartGame()});
+    $("#btn-start").click(function(){turn.notifyStartGame()});
 }
 
 function init(){
