@@ -29,7 +29,6 @@ $(document).ready(function() {
     }
   });
 
-
   $('#event-log').bind('mousewheel DOMMouseScroll', function(e) {
     var scrollTo = null;
 
@@ -45,6 +44,18 @@ $(document).ready(function() {
       $(this).scrollTop(scrollTo + $(this).scrollTop());
     }
   });
+
+  $('[id^=btn-trade]').on('mousedown', function(e) {
+    e.preventDefault();
+    var currNum = parseInt($(this).text());
+    if (e.button == 0) {
+      currNum++;
+    } else if (e.button == 2 && currNum != 0) {
+      currNum--;
+    }
+    $(this).text(currNum);
+  });
+
   socket.on('setupGame', setupGame);
   socket.on('receiveBoardUpdate', receiveBoardUpdate);
 });
